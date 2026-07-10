@@ -1,0 +1,439 @@
+<div class="dashboard-container">
+
+
+  <!-- ================= SIDEBAR ================= -->
+
+  <aside class="sidebar">
+
+
+    <div class="logo">
+
+      <h2>
+        🏭 Performance
+      </h2>
+
+      <p>
+        Dashboard industriel
+      </p>
+
+    </div>
+
+
+
+    <!-- IMPORT FICHIER -->
+
+    <div class="upload-section">
+
+
+      <h3>
+        Importer données
+      </h3>
+
+
+      <label class="file-label">
+
+        📂 Choisir Excel
+
+      </label>
+
+
+      <input
+
+        type="file"
+
+        accept=".xlsx,.xls"
+
+        (change)="onFileSelected($event)"
+
+      >
+
+
+
+      <p
+      class="filename"
+      *ngIf="fileName"
+      >
+
+        {{fileName}}
+
+      </p>
+
+
+
+      <button
+
+        class="analyze-button"
+
+        (click)="analyze()"
+
+        [disabled]="!selectedFile"
+
+      >
+
+        🚀 Analyser
+
+      </button>
+
+
+
+      <div
+      class="loading"
+      *ngIf="loading"
+      >
+
+        ⏳ Analyse en cours ...
+
+      </div>
+
+
+    </div>
+
+
+
+    <hr>
+
+
+
+    <!-- MENU -->
+
+
+    <h3 class="menu-title">
+      Visualisation
+    </h3>
+
+
+
+    <button
+
+      class="menu-button"
+
+      (click)="changeView('kpi')"
+
+    >
+
+      📌 Indicateurs KPI
+
+    </button>
+
+
+
+
+    <button
+
+      class="menu-button"
+
+      (click)="changeView('f1')"
+
+    >
+
+      🎯 Objectif F1
+
+    </button>
+
+
+
+
+    <button
+
+      class="menu-button"
+
+      (click)="changeView('concentre')"
+
+    >
+
+      ⛏ Concentré Co BA
+
+    </button>
+
+
+
+
+    <button
+
+      class="menu-button"
+
+      (click)="changeView('grille')"
+
+    >
+
+      🔥 Produit grillé
+
+    </button>
+
+
+
+
+    <button
+
+      class="menu-button"
+
+      (click)="changeView('production')"
+
+    >
+
+      🏭 Production
+
+    </button>
+
+
+
+
+    <button
+
+      class="menu-button"
+
+      (click)="changeView('rendement')"
+
+    >
+
+      📈 Rendement
+
+    </button>
+
+
+
+  </aside>
+
+
+
+
+
+
+
+  <!-- ================= CONTENT ================= -->
+
+
+  <main class="content">
+
+
+    <header class="header">
+
+
+      <h1>
+        Analyse Performance Production
+      </h1>
+
+
+      <span>
+        Suivi des objectifs F1
+      </span>
+
+
+    </header>
+
+
+
+
+
+
+
+    <!-- ================= KPI ================= -->
+
+
+    <section
+
+    *ngIf="selectedView==='kpi'"
+
+    >
+
+
+      <h2>
+        Indicateurs clés
+      </h2>
+
+
+
+      <div class="kpi-grid">
+
+
+        <div
+
+        class="kpi-card"
+
+        *ngFor="let item of kpis | keyvalue"
+
+        >
+
+
+          <h3>
+
+            {{item.key}}
+
+          </h3>
+
+
+
+          <div class="kpi-value">
+
+            {{item.value.mean | number:'1.2-2'}}
+
+          </div>
+
+
+
+          <p>
+
+            Moyenne
+
+          </p>
+
+
+
+
+          <div class="details">
+
+
+            <span>
+
+              Max :
+              {{item.value.max}}
+
+            </span>
+
+
+            <span>
+
+              Min :
+              {{item.value.min}}
+
+            </span>
+
+
+          </div>
+
+
+
+        </div>
+
+
+
+      </div>
+
+
+    </section>
+
+
+
+
+
+
+
+
+
+    <!-- ================= F1 ================= -->
+
+
+    <section
+
+    *ngIf="selectedView==='f1'"
+
+    >
+
+
+      <h2>
+
+        Suivi objectif F1
+
+      </h2>
+
+
+
+
+      <div
+
+      class="chart-card"
+
+      *ngFor="let chart of objectives"
+
+      >
+
+
+        <div
+
+        echarts
+
+        [options]="getChartOption(chart)"
+
+        class="chart"
+
+        >
+
+        </div>
+
+
+      </div>
+
+
+    </section>
+
+
+
+
+
+
+
+
+
+    <!-- ================= AUTRES GRAPHIQUES ================= -->
+
+
+<section
+
+*ngIf="
+selectedView!=='kpi'
+&&
+selectedView!=='f1'
+"
+
+>
+
+
+<h2>
+
+Analyse procédé
+
+</h2>
+
+
+
+<div
+
+class="chart-card"
+
+*ngFor="let chart of filteredCharts"
+
+>
+
+
+<div
+
+echarts
+
+[options]="getChartOption(chart)"
+
+class="chart"
+
+>
+
+</div>
+
+
+</div>
+
+
+
+<div
+
+class="no-data"
+
+*ngIf="filteredCharts.length===0"
+
+>
+
+⚠️ Aucun graphique disponible pour cette catégorie
+
+</div>
+
+
+
+</section>
