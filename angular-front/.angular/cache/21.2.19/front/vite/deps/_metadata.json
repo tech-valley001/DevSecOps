@@ -1,0 +1,70 @@
+{
+  "hash": "d1a11a19",
+  "configHash": "735f0b41",
+  "lockfileHash": "91372809",
+  "browserHash": "76e468f4",
+  "optimized": {
+    "@angular/common": {
+      "src": "../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
+      "file": "@angular_common.js",
+      "fileHash": "27928921",
+      "needsInterop": false
+    },
+    "@angular/common/http": {
+      "src": "../../../../../../node_modules/@angular/common/fesm2022/http.mjs",
+      "file": "@angular_common_http.js",
+      "fileHash": "0495852e",
+      "needsInterop": false
+    },
+    "@angular/core": {
+      "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
+      "file": "@angular_core.js",
+      "fileHash": "38090a24",
+      "needsInterop": false
+    },
+    "@angular/platform-browser": {
+      "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
+      "file": "@angular_platform-browser.js",
+      "fileHash": "5657a887",
+      "needsInterop": false
+    },
+    "@angular/router": {
+      "src": "../../../../../../node_modules/@angular/router/fesm2022/router.mjs",
+      "file": "@angular_router.js",
+      "fileHash": "bfa4dbf1",
+      "needsInterop": false
+    },
+    "echarts": {
+      "src": "../../../../../../node_modules/echarts/index.js",
+      "file": "echarts.js",
+      "fileHash": "42b72563",
+      "needsInterop": false
+    },
+    "ngx-echarts": {
+      "src": "../../../../../../node_modules/ngx-echarts/fesm2022/ngx-echarts.mjs",
+      "file": "ngx-echarts.js",
+      "fileHash": "cc1fe279",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-UTJURXME": {
+      "file": "chunk-UTJURXME.js"
+    },
+    "chunk-FNO37WJM": {
+      "file": "chunk-FNO37WJM.js"
+    },
+    "chunk-NQCZHTYV": {
+      "file": "chunk-NQCZHTYV.js"
+    },
+    "chunk-U4CSKRPE": {
+      "file": "chunk-U4CSKRPE.js"
+    },
+    "chunk-ZCC4BN6U": {
+      "file": "chunk-ZCC4BN6U.js"
+    },
+    "chunk-653SOEEV": {
+      "file": "chunk-653SOEEV.js"
+    }
+  }
+}

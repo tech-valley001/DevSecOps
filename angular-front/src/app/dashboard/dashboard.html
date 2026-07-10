@@ -1,439 +1,164 @@
 <div class="dashboard-container">
 
-
   <!-- ================= SIDEBAR ================= -->
-
   <aside class="sidebar">
 
-
     <div class="logo">
-
-      <h2>
-        🏭 Performance
-      </h2>
-
-      <p>
-        Dashboard industriel
-      </p>
-
+      <h2>🏭 Performance</h2>
+      <p>Dashboard industriel</p>
     </div>
-
-
 
     <!-- IMPORT FICHIER -->
-
     <div class="upload-section">
-
-
-      <h3>
-        Importer données
-      </h3>
-
-
+      <h3>Importer données</h3>
       <label class="file-label">
-
         📂 Choisir Excel
-
       </label>
-
-
       <input
-
         type="file"
-
         accept=".xlsx,.xls"
-
         (change)="onFileSelected($event)"
-
       >
 
-
-
-      <p
-      class="filename"
-      *ngIf="fileName"
-      >
-
+      <p class="filename" *ngIf="fileName">
         {{fileName}}
-
       </p>
 
-
-
       <button
-
         class="analyze-button"
-
         (click)="analyze()"
-
         [disabled]="!selectedFile"
-
       >
-
         🚀 Analyser
-
       </button>
 
-
-
-      <div
-      class="loading"
-      *ngIf="loading"
-      >
-
+      <div class="loading" *ngIf="loading">
         ⏳ Analyse en cours ...
-
       </div>
-
-
     </div>
-
-
 
     <hr>
 
+    <!-- MENU DYNAMIQUE ET AUTOMATIQUE -->
+    <h3 class="menu-title" *ngIf="sheets.length > 0">Visualisation</h3>
 
-
-    <!-- MENU -->
-
-
-    <h3 class="menu-title">
-      Visualisation
-    </h3>
-
-
-
+    <!-- Boutons Fixes Obligatoires -->
     <button
-
+      *ngIf="sheets.length > 0"
       class="menu-button"
-
+      [class.active]="selectedView === 'kpi'"
       (click)="changeView('kpi')"
-
     >
-
       📌 Indicateurs KPI
-
     </button>
 
-
-
-
     <button
-
+      *ngIf="sheets.length > 0"
       class="menu-button"
-
+      [class.active]="selectedView === 'f1'"
       (click)="changeView('f1')"
-
     >
-
       🎯 Objectif F1
-
     </button>
 
+    <!-- Séparateur visuel si des catégories dynamiques existent -->
+    <hr *ngIf="views.length > 0">
+    <h3 class="menu-title" *ngIf="views.length > 0">Analyses Procédé</h3>
 
-
-
+    <!-- Boucle dynamique sur toutes les catégories de colonnes détectées -->
     <button
-
+      *ngFor="let group of views"
       class="menu-button"
-
-      (click)="changeView('concentre')"
-
+      [class.active]="selectedView === group"
+      (click)="changeView(group)"
     >
-
-      ⛏ Concentré Co BA
-
+      📊 {{ formatKey(group) }}
     </button>
-
-
-
-
-    <button
-
-      class="menu-button"
-
-      (click)="changeView('grille')"
-
-    >
-
-      🔥 Produit grillé
-
-    </button>
-
-
-
-
-    <button
-
-      class="menu-button"
-
-      (click)="changeView('production')"
-
-    >
-
-      🏭 Production
-
-    </button>
-
-
-
-
-    <button
-
-      class="menu-button"
-
-      (click)="changeView('rendement')"
-
-    >
-
-      📈 Rendement
-
-    </button>
-
-
 
   </aside>
 
-
-
-
-
-
-
   <!-- ================= CONTENT ================= -->
-
-
   <main class="content">
 
-
     <header class="header">
-
-
-      <h1>
-        Analyse Performance Production
-      </h1>
-
-
-      <span>
-        Suivi des objectifs F1
-      </span>
-
-
+      <h1>Analyse Performance Production</h1>
+      <span>Suivi des objectifs F1</span>
     </header>
 
+    <!-- ================= ONGLET DES FEUILLES EXCEL ================= -->
+    <div class="sheet-tabs" *ngIf="sheets.length > 0">
+      <button 
+        *ngFor="let sheet of sheets" 
+        class="tab-button"
+        [class.active]="selectedSheet === sheet"
+        (click)="selectSheet(sheet)"
+      >
+        📁 {{ sheet }}
+      </button>
+    </div>
 
-
-
-
-
+    <!-- ================= ÉCRAN D'ACCUEIL / SÉLECTION VIDE ================= -->
+    <div class="no-selection" *ngIf="sheets.length > 0 && !selectedView">
+      <div class="instruction-box">
+        <span class="instruction-icon">👈</span>
+        <h3>Données chargées : {{selectedSheet}}</h3>
+        <p>Veuillez sélectionner une catégorie ou une sous-colonne dans le menu de gauche pour afficher les indicateurs correspondants.</p>
+      </div>
+    </div>
 
     <!-- ================= KPI ================= -->
-
-
-    <section
-
-    *ngIf="selectedView==='kpi'"
-
-    >
-
-
-      <h2>
-        Indicateurs clés
-      </h2>
-
-
+    <section *ngIf="selectedView === 'kpi'">
+      <h2>Indicateurs clés - {{selectedSheet}}</h2>
 
       <div class="kpi-grid">
-
-
-        <div
-
-        class="kpi-card"
-
-        *ngFor="let item of kpis | keyvalue"
-
-        >
-
-
-          <h3>
-
-            {{item.key}}
-
-          </h3>
-
-
-
+        <div class="kpi-card" *ngFor="let item of kpis | keyvalue">
+          <h3>{{ formatKey(item.key) }}</h3>
           <div class="kpi-value">
-
             {{item.value.mean | number:'1.2-2'}}
-
           </div>
-
-
-
-          <p>
-
-            Moyenne
-
-          </p>
-
-
-
+          <p>Moyenne</p>
 
           <div class="details">
-
-
-            <span>
-
-              Max :
-              {{item.value.max}}
-
-            </span>
-
-
-            <span>
-
-              Min :
-              {{item.value.min}}
-
-            </span>
-
-
+            <span>Max : {{item.value.max | number:'1.0-2'}}</span>
+            <span>Min : {{item.value.min | number:'1.0-2'}}</span>
           </div>
-
-
-
         </div>
-
-
-
       </div>
-
-
     </section>
-
-
-
-
-
-
-
-
 
     <!-- ================= F1 ================= -->
+    <section *ngIf="selectedView === 'f1'">
+      <h2>Suivi objectif F1 - {{selectedSheet}}</h2>
 
-
-    <section
-
-    *ngIf="selectedView==='f1'"
-
-    >
-
-
-      <h2>
-
-        Suivi objectif F1
-
-      </h2>
-
-
-
-
-      <div
-
-      class="chart-card"
-
-      *ngFor="let chart of objectives"
-
-      >
-
-
+      <div class="chart-card" *ngFor="let chart of objectives">
         <div
-
-        echarts
-
-        [options]="getChartOption(chart)"
-
-        class="chart"
-
-        >
-
-        </div>
-
-
+          echarts
+          [options]="getChartOption(chart)"
+          class="chart"
+        ></div>
       </div>
 
-
+      <div class="no-data" *ngIf="objectives.length === 0">
+        ⚠️ Aucun suivi d'objectif F1 détecté sur cette feuille.
+      </div>
     </section>
 
+    <!-- ================= AUTRES GRAPHIQUES DYNAMIQUES ET SÉPARÉS ================= -->
+    <section *ngIf="selectedView && selectedView !== 'kpi' && selectedView !== 'f1'">
+      <h2>{{ formatKey(selectedView) }} - {{selectedSheet}}</h2>
 
+      <div class="chart-card" *ngFor="let chart of filteredCharts">
+        <div
+          echarts
+          [options]="getChartOption(chart)"
+          class="chart"
+        ></div>
+      </div>
 
+      <div class="no-data" *ngIf="filteredCharts.length === 0">
+        ⚠️ Aucun graphique disponible pour cette catégorie sur la feuille {{selectedSheet}}
+      </div>
+    </section>
 
-
-
-
-
-
-    <!-- ================= AUTRES GRAPHIQUES ================= -->
-
-
-<section
-
-*ngIf="
-selectedView!=='kpi'
-&&
-selectedView!=='f1'
-"
-
->
-
-
-<h2>
-
-Analyse procédé
-
-</h2>
-
-
-
-<div
-
-class="chart-card"
-
-*ngFor="let chart of filteredCharts"
-
->
-
-
-<div
-
-echarts
-
-[options]="getChartOption(chart)"
-
-class="chart"
-
->
-
+  </main>
 </div>
-
-
-</div>
-
-
-
-<div
-
-class="no-data"
-
-*ngIf="filteredCharts.length===0"
-
->
-
-⚠️ Aucun graphique disponible pour cette catégorie
-
-</div>
-
-
-
-</section>
