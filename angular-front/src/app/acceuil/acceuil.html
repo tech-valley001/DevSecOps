@@ -1,0 +1,33 @@
+<div class="container my-4">
+  <h2 class="mb-3">1. Importer un nouveau fichier Excel</h2>
+  <div class="card p-4 mb-5 shadow-sm">
+    <div class="mb-3">
+      <input type="file" class="form-control" (change)="onFileSelected($event)" accept=".xlsx, .xls" />
+    </div>
+    <button 
+      class="btn btn-primary" 
+      [disabled]="!selectedFile || loading" 
+      (click)="analyze()">
+      {{ loading ? 'Analyse et sauvegarde en cours...' : 'Analyser et Enregistrer' }}
+    </button>
+  </div>
+
+  <h2 class="mb-3">2. Historique des fichiers importés</h2>
+  <div class="list-group shadow-sm">
+    <div 
+      *ngFor="let file of recentFiles" 
+      class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+      style="cursor: pointer;"
+      (click)="openDashboard(file.id)">
+      <div>
+        <h5 class="mb-1">{{ file.filename }}</h5>
+        <small class="text-muted">Importé le : {{ file.imported_at }}</small>
+      </div>
+      <button class="btn btn-sm btn-outline-primary">Voir Dashboard &rarr;</button>
+    </div>
+
+    <div *ngIf="recentFiles.length === 0" class="alert alert-info mb-0">
+      Aucun fichier importé pour le moment.
+    </div>
+  </div>
+</div>

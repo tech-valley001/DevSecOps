@@ -1,249 +1,309 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxEchartsModule } from 'ngx-echarts';
+import { Api, RecentFile } from '../services/api';
 
-import { Api } from '../services/api';
+export interface KPIComparison {
+  key: string;
+  label: string;
+  actual: number | string | null;
+  target: number | string | null;
+  unit: string;
+  difference: number | null;
+  achievementRate: number | null;
+  status: 'success' | 'warning' | 'danger' | 'neutral';
+}
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     NgxEchartsModule
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
 
-  // ==========================================================================
-  // Gestion du Fichier Excel
-  // ==========================================================================
-  selectedFile!: File;
-  fileName: string = "";
+  recentFiles: RecentFile[] = [];
+  selectedFileId: number | null = null;
   loading: boolean = false;
+  filename: string = '';
 
-  // ==========================================================================
-  // Navigation, Onglets & Catégories de Menu
-  // ==========================================================================
-  selectedView: string = "";    // Initialement vide pour ne rien afficher avant clic
-  sheets: string[] = [];        // Liste des feuilles (ex: ['Grillage', 'Cobalt', 'Cil', 'Acide'])
-  selectedSheet: string = "";   // Feuille active sélectionnée
-  views: string[] = [];         // Catégories détectées pour le menu
+  selectedView: string = "kpi";    
+  sheets: string[] = [];        
+  selectedSheet: string = "";   
+  views: string[] = [];         
 
-  // ==========================================================================
-  // Données de l'Application
-  // ==========================================================================
-  allSheetsData: any = {};      // Réponse brute complète du service API
-  kpis: any = {};               // Cartes KPI de la feuille active
-  charts: any[] = [];           // Graphiques bruts de la feuille active
-  objectives: any[] = [];       // Suivi des objectifs F1
-  filteredCharts: any[] = [];   // Graphiques structurés et séparés par unité pour affichage
+  allSheetsData: any = {};      
+  kpis: any = {};               
+  charts: any[] = [];           
+  objectives: any[] = [];       
+  filteredCharts: any[] = [];   
+
+  combinedKpiCards: KPIComparison[] = [];
 
   constructor(
-    private api: Api
-  ){}
+    private api: Api,
+    private route: ActivatedRoute,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  // ==========================================================================
-  // Sélection & Analyse du Fichier
-  // ==========================================================================
-  onFileSelected(event: any){
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-      this.fileName = file.name;
+  ngOnInit(): void {
+    this.loadRecentFiles();
+
+    this.route.paramMap.subscribe(params => {
+      const idParam = params.get('id');
+      if (idParam) {
+        this.loadDashboardFromFile(Number(idParam));
+      } else {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadRecentFiles(): void {
+    this.api.getRecentFiles().subscribe({
+      next: (files) => {
+        this.recentFiles = files || [];
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error("Erreur fichiers récents:", err)
+    });
+  }
+
+  loadDashboardFromFile(fileId: number): void {
+    this.selectedFileId = fileId;
+    this.loading = true;
+    this.cdr.detectChanges();
+
+    this.api.getFileDashboard(fileId).subscribe({
+      next: (response: any) => {
+        try {
+          this.processApiResponse(response);
+        } catch (err) {
+          console.error("Erreur traitement JSON:", err);
+        } finally {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error("Erreur HTTP Backend:", err);
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onSelectFileFromDropdown(fileId: number): void {
+    if (fileId) {
+      this.router.navigate(['/dashboard', fileId]);
     }
   }
 
-  analyze(){
-    if (!this.selectedFile) {
-      alert("Veuillez choisir un fichier Excel.");
+  private processApiResponse(response: any): void {
+    if (!response) {
+      this.allSheetsData = {};
+      this.sheets = [];
       return;
     }
 
-    this.loading = true;
+    this.filename = response.filename || '';
+    this.allSheetsData = response.sheets ? response.sheets : response;
+    this.sheets = Object.keys(this.allSheetsData || {});
 
-    this.api.analyzeCSV(this.selectedFile)
-      .subscribe({
-        next: (response) => {
-          console.log("Données reçues du backend :", response);
-          
-          this.allSheetsData = response || {};
-          this.sheets = Object.keys(this.allSheetsData);
-          
-          if (this.sheets.length > 0) {
-            this.selectSheet(this.sheets[0]);
-          }
-
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error("Erreur lors de l'analyse :", error);
-          this.loading = false;
-        }
-      });
+    if (this.sheets.length > 0) {
+      this.selectSheet(this.sheets[0]);
+    }
   }
 
-  // ==========================================================================
-  // Sélection de la Feuille Active & Extraction des Catégories
-  // ==========================================================================
-  selectSheet(sheetName: string) {
+  selectSheet(sheetName: string): void {
     this.selectedSheet = sheetName;
     const sheetData = this.allSheetsData[sheetName] || {};
 
     this.kpis = sheetData.kpis || {};
-    this.charts = sheetData.charts || [];
-    this.objectives = sheetData.objectives || [];
+    this.charts = Array.isArray(sheetData.charts) ? sheetData.charts : [];
+    this.objectives = Array.isArray(sheetData.objectives) ? sheetData.objectives : [];
 
-    // Extraction dynamique des catégories uniques
-    const dynamicGroups = this.charts
-      .map((chart: any) => chart.group || chart.category || this.mapToExactExcelHeaders(chart.title))
-      .filter((group: string, index: number, self: string[]) => group && self.indexOf(group) === index);
+    if (this.charts.length > 0) {
+      const dynamicGroups = this.charts
+        .map((chart: any) => {
+          if (!chart) return 'Autres';
+          return chart.group || chart.category || this.mapToExactExcelHeaders(chart.title || '');
+        })
+        .filter((group: string, index: number, self: string[]) => group && self.indexOf(group) === index);
 
-    this.views = dynamicGroups;
+      this.views = dynamicGroups;
+    } else {
+      this.views = [];
+    }
 
-    // IMPORTANT : On vide selectedView pour forcer le clic sur le menu de gauche
-    this.selectedView = ""; 
-    this.filteredCharts = [];
+    this.buildKpiComparisons();
+    this.selectedView = 'kpi';
+    this.cdr.detectChanges();
   }
 
-  // ==========================================================================
-  // Mappage pour faire correspondre les titres aux en-têtes Excel
-  // ==========================================================================
+  private buildKpiComparisons(): void {
+    this.combinedKpiCards = [];
+    if (!this.kpis) return;
+
+    // 1. Dictionnaire d'objectifs nettoyés
+    const targetMap = new Map<string, number>();
+
+    if (Array.isArray(this.objectives)) {
+      this.objectives.forEach((obj: any) => {
+        if (!obj) return;
+
+        if (obj.metric && obj.target_value !== undefined) {
+          targetMap.set(this.normalizeKey(obj.metric), Number(obj.target_value));
+        } else if (Array.isArray(obj.series)) {
+          const targetSerie = obj.series.find((s: any) => 
+            s.name && (s.name.includes('Objectif') || s.name.includes('F1'))
+          );
+          if (targetSerie && Array.isArray(targetSerie.data)) {
+            const validVals = targetSerie.data.filter((v: any) => typeof v === 'number' && !isNaN(v));
+            if (validVals.length > 0) {
+              const avg = validVals.reduce((a: number, b: number) => a + b, 0) / validVals.length;
+              const key = obj.title ? obj.title.split(':')[0].trim() : '';
+              if (key) targetMap.set(this.normalizeKey(key), avg);
+            }
+          }
+        }
+      });
+    }
+
+    // 2. Association des KPIs et Cibles
+    Object.keys(this.kpis).forEach(key => {
+      let rawVal = this.kpis[key];
+
+      if (rawVal && typeof rawVal === 'object') {
+        rawVal = rawVal.mean !== undefined ? rawVal.mean : rawVal.sum;
+      }
+
+      const numericVal = typeof rawVal === 'number' ? rawVal : parseFloat(rawVal);
+      const isNum = !isNaN(numericVal);
+      const normKey = this.normalizeKey(key);
+
+      let targetVal = targetMap.get(normKey) ?? null;
+
+      if (targetVal === null) {
+        for (const [tKey, tVal] of targetMap.entries()) {
+          const cleanNormKey = normKey.replace('f1', '');
+          const cleanTKey = tKey.replace('f1', '');
+          if (cleanNormKey.includes(cleanTKey) || cleanTKey.includes(cleanNormKey)) {
+            targetVal = tVal;
+            break;
+          }
+        }
+      }
+
+      const unit = this.detectUnit(key);
+
+      let diff: number | null = null;
+      let rate: number | null = null;
+      let status: 'success' | 'warning' | 'danger' | 'neutral' = 'neutral';
+
+      if (isNum && targetVal !== null && targetVal !== 0) {
+        diff = numericVal - targetVal;
+        rate = (numericVal / targetVal) * 100;
+
+        if (rate >= 95) status = 'success';
+        else if (rate >= 80) status = 'warning';
+        else status = 'danger';
+      }
+
+      this.combinedKpiCards.push({
+        key,
+        label: this.cleanLabel(key),
+        actual: isNum ? Number(numericVal.toFixed(1)) : rawVal,
+        target: targetVal !== null ? Number(targetVal.toFixed(1)) : null,
+        unit,
+        difference: diff !== null ? Number(diff.toFixed(1)) : null,
+        achievementRate: rate !== null ? Math.min(Math.round(rate), 200) : null,
+        status
+      });
+    });
+  }
+
+  private cleanLabel(key: string): string {
+    if (!key) return '';
+    const words = key.replace(/_/g, ' ').trim().split(/\s+/);
+    const uniqueWords = words.filter((word, index) => words.indexOf(word) === index);
+    return uniqueWords.join(' ');
+  }
+
+  private normalizeKey(key: string): string {
+    return key.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  private detectUnit(key: string): string {
+    const lower = key.toLowerCase();
+    if (lower.includes('rendement') || lower.includes('pct') || lower.includes('%')) return '%';
+    if (lower.includes('kwh') || lower.includes('energie')) return 'kWh';
+    if (lower.includes('tonnage') || lower.includes('tonnes') || lower.includes(' t_') || lower.endsWith(' h') || lower.endsWith(' sec')) return 'T';
+    if (lower.includes('g_') || lower.includes('gramme')) return 'g';
+    return '';
+  }
+
   private mapToExactExcelHeaders(title: string): string {
-    if (!title) return 'Autres paramètres';
-    const lower = title.toLowerCase().trim();
-
-    // --- FEUILLE : ACIDE ---
-    if (this.selectedSheet === 'Acide') {
-      if (lower.includes('réceptionnée') || lower.includes('receptionnee')) {
-        return 'Pyrrhotine digue CMG réceptionnée humide';
-      }
-      if (lower.includes('traitée') || lower.includes('traitee')) {
-        return 'Pyrrhotine digue CMG traitée humide';
-      }
-      if (lower.includes('h2so4')) {
-        return 'Production H2SO4';
-      }
-      if (lower.includes('fe2o3')) {
-        return 'Production Fe2O3 sec';
-      }
-      if (lower.includes('rendement')) {
-        return 'Rendement';
-      }
-      if (lower.includes('energie') || lower.includes('turbine') || lower.includes('one') || lower.includes('cedee') || lower.includes('force motrice') || lower.includes('kwh')) {
-        return 'Energie soutirée';
-      }
-      if (lower.includes('stock') || lower.includes('retour') || lower.includes('ecart')) {
-        return 'Stock usine H2SO4';
-      }
-    }
-
-    // --- FEUILLE : GRILLAGE ---
-    if (this.selectedSheet === 'Grillage') {
-      if (lower.includes('concentré') || lower.includes('concentre')) return 'Concentré Co BA';
-      if (lower.includes('grillé') || lower.includes('grille')) return 'Grillé Produit';
-      if (lower.includes('production')) return 'Production';
-      if (lower.includes('rendement') || lower.includes('bilan')) return 'Rendement Bilan';
-      if (lower.includes('teneur') || lower.includes('traité') || lower.includes('traite')) return 'Teneur traité et produit';
-    }
-
-    // --- FEUILLE : COBALT ---
-    if (this.selectedSheet === 'Cobalt') {
-      if (lower.includes('amsp ctt')) return 'TV Grillé AMSP CTT';
-      if (lower.includes('amsp ggm')) return 'TV Grillé AMSP GGM';
-      if (lower.includes('st grillé - ctt')) return 'St Grillé - CTT';
-      if (lower.includes('st arseniate - ctt')) return 'St Arseniate - CTT';
-      if (lower.includes('st grillé - ggm')) return 'St Grillé - GGM';
-      if (lower.includes('st arseniate - ggm')) return 'St Arseniate - GGM';
-      if (lower.includes('finalisation')) return 'Finalisation';
-      if (lower.includes('production')) return 'Production';
-      if (lower.includes('rendement') || lower.includes('bilan')) return 'Rendement Bilan';
-    }
-
-    // --- FEUILLE : CIL ---
-    if (this.selectedSheet === 'Cil') {
-      if (lower.includes('st grillé')) return 'St Grillé';
-      if (lower.includes('haldes')) return 'Haldes BA';
-      if (lower.includes('akka')) return 'St-Akka grillage';
-      if (lower.includes('cis')) return 'St- CIS';
-      if (lower.includes('charbon')) return 'Prod Charbon g';
-      if (lower.includes('produit lingot')) return 'Produit Lingot';
-      if (lower.includes('expédition')) return 'Expédition Lingot';
-      if (lower.includes('rendement') || lower.includes('bilan')) return 'Rendement Bilan';
-    }
-
-    return 'Paramètres Procédé';
+    if (!title) return 'Autres';
+    return title.replace(/_/g, ' ');
   }
 
-  // ==========================================================================
-  // Détection d'Unité (Pourcentages & Ratios)
-  // ==========================================================================
   private isPercentUnit(name: string): boolean {
     if (!name) return false;
     const lower = name.toLowerCase().trim();
-    
-    return (
-      lower.includes('%') || 
-      lower.includes('pct') ||
-      lower.includes('rendement') || 
-      lower.includes('rdt') || 
-      lower.includes('humidité') || 
-      lower.includes('conversion') || 
-      lower.includes('absorption') || 
-      lower.includes('purification')
-    );
+    return lower.includes('%') || lower.includes('pct') || lower.includes('rendement');
   }
 
-  // ==========================================================================
-  // Changement de Vue & Séparation des Courbes (Volumes vs Ratios)
-  // ==========================================================================
-  changeView(view: string){
+  changeView(view: string): void {
     this.selectedView = view;
-
-    if (view === "kpi" || view === "f1") {
+    if (view === "kpi") {
+      this.cdr.detectChanges();
       return;
     }
 
-    // 1. Filtrer les graphiques bruts de la catégorie sélectionnée
-    const rawCategoryCharts = this.charts.filter((chart: any) => {
-      const chartGroup = chart.group || chart.category || this.mapToExactExcelHeaders(chart.title);
+    const rawCategoryCharts = (this.charts || []).filter((chart: any) => {
+      if (!chart) return false;
+      const chartGroup = chart.group || chart.category || this.mapToExactExcelHeaders(chart.title || '');
       return chartGroup === view;
     });
 
-    // 2. Consolider l'ensemble des séries et l'axe X
     let allSeries: any[] = [];
     let xAxisData: any[] = [];
 
     rawCategoryCharts.forEach((chart: any) => {
-      if (chart.xAxis && chart.xAxis.length > 0) {
+      if (chart && Array.isArray(chart.xAxis) && chart.xAxis.length > 0) {
         xAxisData = chart.xAxis;
       }
-      if (chart.series && chart.series.length > 0) {
+      if (chart && Array.isArray(chart.series) && chart.series.length > 0) {
         allSeries.push(...chart.series);
       }
     });
 
-    // 3. Séparer dynamiquement les séries
-    const percentSeries = allSeries.filter(serie => this.isPercentUnit(serie.name));
-    const valueSeries = allSeries.filter(serie => !this.isPercentUnit(serie.name));
+    const percentSeries = allSeries.filter(serie => serie && this.isPercentUnit(serie.name));
+    const valueSeries = allSeries.filter(serie => serie && !this.isPercentUnit(serie.name));
 
     const finalSeparatedCharts: any[] = [];
 
-    // Premier graphique : Tonnages, Energies et grandeurs physiques
     if (valueSeries.length > 0) {
       finalSeparatedCharts.push({
-        title: `${view} - Flux & Volumes (Tonnages / Quantités)`,
+        title: `${view} - Quantités & Volumes`,
         xAxis: xAxisData,
         series: valueSeries,
-        yAxisUnit: 'Unités Physiques'
+        yAxisUnit: 'Valeurs'
       });
     }
 
-    // Deuxième graphique : Concentrés, rendements, pourcentages et humidités
     if (percentSeries.length > 0) {
       finalSeparatedCharts.push({
-        title: `${view} - Ratios & Concentrations (%)`,
+        title: `${view} - Ratios & Rendements (%)`,
         xAxis: xAxisData,
         series: percentSeries,
         yAxisUnit: '%'
@@ -251,45 +311,32 @@ export class Dashboard {
     }
 
     this.filteredCharts = finalSeparatedCharts;
+    this.cdr.detectChanges();
   }
 
-  // ==========================================================================
-  // Formater les clés et supprimer les underscores d'affichage
-  // ==========================================================================
   formatKey(key: any): string {
-    if (key === null || key === undefined) return '';
-    return String(key).replace(/_/g, ' ').trim();
+    return this.cleanLabel(String(key));
   }
 
-  // ==========================================================================
-  // Générateur d'Options ECharts (Multi-Courbe Adapté)
-  // ==========================================================================
-  getChartOption(chart: any){
+  getChartOption(chart: any): any {
     const isPercentChart = chart.yAxisUnit === '%';
 
     return {
       title: {
         text: chart.title,
         left: "center",
-        textStyle: {
-          color: '#eeeeee',
-          fontSize: 15
-        }
+        textStyle: { color: '#eeeeee', fontSize: 15 }
       },
       tooltip: {
         trigger: "axis",
         backgroundColor: '#1e222b',
         borderColor: '#2e3846',
-        textStyle: {
-          color: '#eeeeee'
-        }
+        textStyle: { color: '#eeeeee' }
       },
       legend: {
         bottom: "0%",
         left: "center",
-        textStyle: {
-          color: '#95a5a6'
-        }
+        textStyle: { color: '#95a5a6' }
       },
       grid: {
         left: "5%",
@@ -299,65 +346,41 @@ export class Dashboard {
       },
       xAxis: {
         type: "category",
-        data: chart.xAxis,
-        axisLine: {
-          lineStyle: { color: '#2e3846' }
-        },
-        axisLabel: {
-          color: '#95a5a6'
-        }
+        data: chart.xAxis || [],
+        axisLine: { lineStyle: { color: '#2e3846' } },
+        axisLabel: { color: '#95a5a6' }
       },
       yAxis: {
         type: "value",
         name: chart.yAxisUnit,
-        nameTextStyle: {
-          color: '#95a5a6'
-        },
+        nameTextStyle: { color: '#95a5a6' },
         min: isPercentChart ? 0 : null,
         max: isPercentChart ? 100 : null,
-        splitLine: {
-          lineStyle: { color: '#2e3846' }
-        },
-        axisLabel: {
-          color: '#95a5a6',
-          formatter: isPercentChart ? '{value} %' : '{value}'
-        }
+        splitLine: { lineStyle: { color: '#2e3846' } },
+        axisLabel: { color: '#95a5a6' }
       },
-      series: chart.series.map((serie: any) => {
-        const nameLower = serie.name.toLowerCase();
-
-        // Type 1 : Consommations énergétiques -> Rendu Courbe d'Aire (Volume d'énergie)
-        if (nameLower.includes('énergie') || nameLower.includes('energie') || nameLower.includes('kwh')) {
-          return {
-            name: this.formatKey(serie.name),
-            type: "line",
-            smooth: true,
-            areaStyle: { opacity: 0.2 },
-            data: serie.data
-          };
-        }
-
-        // Type 2 : Quantités physiques & Tonnages bruts -> Rendu Barres
-        if (!isPercentChart && (nameLower.includes('production') || nameLower.includes('receptionnee') || nameLower.includes('traite'))) {
-          return {
-            name: this.formatKey(serie.name),
-            type: "bar",
-            barMaxWidth: 30,
-            borderRadius: [4, 4, 0, 0],
-            data: serie.data
-          };
-        }
-
-        // Type 3 : Rendements & Chimies -> Rendu Ligne fine et fluide
-        return {
-          name: this.formatKey(serie.name),
-          type: "line",
-          smooth: true,
-          symbol: 'circle',
-          symbolSize: 6,
-          data: serie.data
-        };
-      })
+      series: (chart.series || []).map((serie: any) => ({
+        name: this.formatKey(serie.name),
+        type: "line",
+        smooth: true,
+        data: serie.data || []
+      }))
     };
+  }
+
+  hasKpis(): boolean {
+    return this.combinedKpiCards.length > 0;
+  }
+
+  getSuccessCount(): number {
+    return this.combinedKpiCards.filter(c => c.status === 'success').length;
+  }
+
+  getWarningCount(): number {
+    return this.combinedKpiCards.filter(c => c.status === 'warning').length;
+  }
+
+  getDangerCount(): number {
+    return this.combinedKpiCards.filter(c => c.status === 'danger').length;
   }
 }
