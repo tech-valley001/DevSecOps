@@ -1,276 +1,116 @@
-<div class="dashboard">
+<div class="dashboard-wrapper bg-dark text-light min-vh-100 p-4">
 
-    <!-- ===== HEADER ===== -->
+  <!-- EN-TÊTE SUPERIEUR -->
+  <div class="d-flex justify-content-between align-items-center mb-4 bg-secondary bg-opacity-10 p-3 rounded border border-secondary">
+    <div class="d-flex align-items-center gap-3">
+      <a routerLink="/acceuil" class="btn btn-outline-light btn-sm">&larr; Accueil</a>
+      <span *ngIf="filename" class="badge bg-info text-dark fw-bold">{{ filename }}</span>
+    </div>
 
-    <header class="dashboard-header">
+    <!-- SÉLECTEUR DE FEUILLE -->
+    <div class="d-flex align-items-center gap-2" *ngIf="sheets.length > 0">
+      <label class="form-label mb-0 fw-bold fs-7">Feuille :</label>
+      <select class="form-select form-select-sm bg-dark text-light border-secondary" (change)="selectSheet($any($event.target).value)">
+        <option *ngFor="let s of sheets" [value]="s" [selected]="s === selectedSheet">{{ s }}</option>
+      </select>
+    </div>
+  </div>
 
-        <div class="header-left">
+  <div class="row g-4">
+    
+    <!-- MENU LATÉRAL : SEULEMENT LES COLONNES PRINCIPALES -->
+    <div class="col-md-3">
+      <div class="bg-dark border border-secondary rounded p-3 shadow-sm">
+        <h6 class="text-uppercase text-info fs-7 fw-bold mb-3">📌 Colonnes</h6>
 
-            <a routerLink="/acceuil" class="back-btn">
-                ← Retour
-            </a>
+        <div class="list-group">
+          <button 
+            *ngFor="let cat of columnCategories"
+            class="list-group-item list-group-item-action bg-secondary bg-opacity-10 text-light border-secondary mb-2 rounded d-flex justify-content-between align-items-center py-2"
+            [class.active]="selectedCategory === cat"
+            (click)="onSelectColumnCategory(cat)">
+            <span class="fw-bold fs-7">📊 {{ cat }}</span>
+            <span class="fs-8 text-muted">&rarr;</span>
+          </button>
+        </div>
+      </div>
+    </div>
 
-            <div class="header-info">
+    <!-- ZONE PRINCIPALE DE VISUALISATION -->
+    <div class="col-md-9" *ngIf="selectedCategory">
+      
+      <!-- 1. CARTES KPIS DE LA COLONNE SÉLECTIONNÉE -->
+      <div class="mb-4" *ngIf="selectedColumnKPIs.length > 0">
+        <h6 class="text-info fw-bold mb-3 border-bottom border-secondary pb-2">
+          🎯 KPIs : {{ selectedCategory }}
+        </h6>
+        
+        <div class="row g-3">
+          <div class="col-md-6 col-lg-4" *ngFor="let kpi of selectedColumnKPIs">
+            <div class="card bg-secondary bg-opacity-10 border-secondary p-3 shadow-sm h-100">
+              
+              <!-- En-tête KPI -->
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="fs-7 text-light fw-bold text-truncate">{{ kpi.subName }}</span>
+                <span class="badge" [ngClass]="{
+                  'bg-success': kpi.status === 'success',
+                  'bg-warning': kpi.status === 'warning',
+                  'bg-danger': kpi.status === 'danger',
+                  'bg-secondary': kpi.status === 'neutral'
+                }">{{ kpi.status }}</span>
+              </div>
 
-                <h1>Dashboard industriel</h1>
+              <!-- Valeur Actuelle et Unité -->
+              <div class="my-1">
+                <h3 class="fw-bold my-0">
+                  {{ kpi.value }} 
+                  <small class="fs-7 text-muted">{{ kpi.unit }}</small>
+                </h3>
+              </div>
 
-                <p *ngIf="filename">
-                    {{ filename }}
-                </p>
+              <!-- Tendance & Cible F1 -->
+              <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 fs-8 d-flex justify-content-between align-items-center">
+                <span [class.text-success]="kpi.trend >= 0" [class.text-danger]="kpi.trend < 0">
+                  {{ kpi.trend >= 0 ? '▲ +' : '▼ ' }}{{ kpi.trend }}
+                </span>
+                <span *ngIf="kpi.targetF1 !== null" class="text-info">
+                  Cible F1: <strong>{{ kpi.targetF1 }} {{ kpi.unit }}</strong>
+                </span>
+              </div>
 
             </div>
-
+          </div>
         </div>
+      </div>
 
-        <div class="report-selector">
+      <!-- 2. GRAPHIQUES ADAPTÉS PAR UNITÉS (% vs Autres) -->
+      <div class="mb-4" *ngIf="categoryChartOptions.length > 0">
+        <h6 class="text-info fw-bold mb-3 border-bottom border-secondary pb-2">
+          📈 Évolution Temporelle
+        </h6>
 
-            <label>Rapport actif</label>
-
-            <select
-                [value]="selectedFileId"
-                (change)="onSelectFileFromDropdown(+$any($event.target).value)">
-
-                <option
-                    *ngFor="let file of recentFiles"
-                    [value]="file.id">
-
-                    {{ file.filename }}
-
-                </option>
-
-            </select>
-
+        <div class="d-flex flex-column gap-4">
+          <div class="card bg-secondary bg-opacity-10 border-secondary p-3 shadow-sm" *ngFor="let opt of categoryChartOptions">
+            <div echarts [options]="opt" style="height: 360px;"></div>
+          </div>
         </div>
+      </div>
 
-    </header>
+      <!-- 3. GRAPHIQUES D'OBJECTIFS (F1 vs Sous-colonne Réelle qui le précède) -->
+      <div *ngIf="objectiveChartOptions.length > 0">
+        <h6 class="text-success fw-bold mb-3 border-bottom border-secondary pb-2">
+          🎯 Comparaison avec les Objectifs F1
+        </h6>
 
-    <!-- ===== LOADER ===== -->
-
-    <div *ngIf="loading" class="loader-container">
-
-        <div class="loader"></div>
-
-        <p>Chargement des données...</p>
+        <div class="d-flex flex-column gap-4">
+          <div class="card bg-secondary bg-opacity-10 border-secondary p-3 shadow-sm" *ngFor="let opt of objectiveChartOptions">
+            <div echarts [options]="opt" style="height: 350px;"></div>
+          </div>
+        </div>
+      </div>
 
     </div>
 
-    <!-- ===== CONTENU ===== -->
-
-    <div *ngIf="!loading" class="dashboard-content">
-
-        <!-- FEUILLES -->
-
-        <div class="sheet-tabs" *ngIf="sheets.length > 0">
-
-            <button
-                *ngFor="let sheet of sheets"
-                class="sheet-btn"
-                [class.active]="sheet === selectedSheet"
-                (click)="selectSheet(sheet)">
-
-                {{ sheet }}
-
-            </button>
-
-        </div>
-
-        <div class="main-layout" *ngIf="selectedSheet">
-
-            <!-- ===== SIDEBAR ===== -->
-
-            <aside class="sidebar">
-
-                <button
-                    *ngIf="hasKpis()"
-                    class="menu-item"
-                    [class.active]="selectedView === 'kpi'"
-                    (click)="selectedView = 'kpi'">
-
-                    <span>🎯 Synthèse</span>
-
-                    <span class="count">
-
-                        {{ combinedKpiCards.length }}
-
-                    </span>
-
-                </button>
-
-                <button
-                    *ngFor="let view of views"
-                    class="menu-item"
-                    [class.active]="selectedView === view"
-                    (click)="changeView(view)">
-
-                    📈 {{ view }}
-
-                </button>
-
-            </aside>
-
-            <!-- ===== CONTENU PRINCIPAL ===== -->
-
-            <section class="content-area">
-
-                <!-- KPIS -->
-
-                <div
-                    *ngIf="selectedView === 'kpi' && hasKpis()">
-
-                    <!-- Résumé -->
-
-                    <div class="summary-grid">
-
-                        <div class="summary-card success">
-
-                            <h2>
-
-                                {{ getSuccessCount() }}
-
-                            </h2>
-
-                            <p>Conformes</p>
-
-                        </div>
-
-                        <div class="summary-card warning">
-
-                            <h2>
-
-                                {{ getWarningCount() }}
-
-                            </h2>
-
-                            <p>Vigilance</p>
-
-                        </div>
-
-                        <div class="summary-card danger">
-
-                            <h2>
-
-                                {{ getDangerCount() }}
-
-                            </h2>
-
-                            <p>Sous objectif</p>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Cartes KPI -->
-
-                    <div class="kpi-grid">
-
-                        <div
-                            class="kpi-card"
-                            *ngFor="let card of combinedKpiCards">
-
-                            <div class="kpi-header">
-
-                                <h3>
-
-                                    {{ card.label }}
-
-                                </h3>
-
-                                <span
-                                    class="status"
-                                    [ngClass]="card.status">
-
-                                    {{ card.achievementRate }}%
-
-                                </span>
-
-                            </div>
-
-                            <div class="kpi-values">
-
-                                <div>
-
-                                    <span class="big-number">
-
-                                        {{ card.actual }}
-
-                                    </span>
-
-                                    <small>
-
-                                        {{ card.unit }}
-
-                                    </small>
-
-                                </div>
-
-                                <div *ngIf="card.target">
-
-                                    <span class="target">
-
-                                        F1 :
-
-                                        {{ card.target }}
-
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-                            <div
-                                *ngIf="card.target"
-                                class="progress-container">
-
-                                <div class="progress-bar">
-
-                                    <div
-                                        class="progress-fill"
-                                        [ngClass]="card.status"
-                                        [style.width.%]="card.achievementRate">
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- GRAPHIQUES -->
-
-                <div *ngIf="selectedView !== 'kpi'">
-
-                    <div
-                        class="chart-card"
-                        *ngFor="let chart of filteredCharts">
-
-                        <div
-                            echarts
-                            [options]="getChartOption(chart)"
-                            class="echart-container">
-
-                        </div>
-
-                    </div>
-
-                    <div
-                        *ngIf="filteredCharts.length === 0"
-                        class="empty-state">
-
-                        Aucun graphique disponible.
-
-                    </div>
-
-                </div>
-
-            </section>
-
-        </div>
-
-    </div>
+  </div>
 
 </div>

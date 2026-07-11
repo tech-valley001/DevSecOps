@@ -4,25 +4,23 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { Api, RecentFile } from '../services/api';
 
-export interface KPIComparison {
-  key: string;
-  label: string;
-  actual: number | string | null;
-  target: number | string | null;
+export interface ColumnKPI {
+  fullName: string;
+  subName: string;
+  value: number;
+  average: number;
+  sum: number;
+  trend: number;
+  targetF1: number | null;
   unit: string;
-  difference: number | null;
-  achievementRate: number | null;
+  type: 'volume' | 'moyenne';
   status: 'success' | 'warning' | 'danger' | 'neutral';
 }
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    NgxEchartsModule
-  ],
+  imports: [CommonModule, RouterLink, NgxEchartsModule],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
@@ -33,18 +31,24 @@ export class Dashboard implements OnInit {
   loading: boolean = false;
   filename: string = '';
 
-  selectedView: string = "kpi";    
-  sheets: string[] = [];        
-  selectedSheet: string = "";   
-  views: string[] = [];         
+  sheets: string[] = [];
+  selectedSheet: string = '';
 
-  allSheetsData: any = {};      
-  kpis: any = {};               
-  charts: any[] = [];           
-  objectives: any[] = [];       
-  filteredCharts: any[] = [];   
+  allSheetsData: any = {};
+  
+  // Raw Data de la feuille active
+  kpisRaw: any = {};
+  chartsRaw: any[] = [];
+  objectivesRaw: any[] = [];
 
-  combinedKpiCards: KPIComparison[] = [];
+  // Menu : Uniquement les Colonnes Principales (Catégories)
+  columnCategories: string[] = [];
+  selectedCategory: string | null = null;
+
+  // Données prêtes pour l'affichage de la colonne sélectionnée
+  selectedColumnKPIs: ColumnKPI[] = [];
+  categoryChartOptions: any[] = [];
+  objectiveChartOptions: any[] = [];
 
   constructor(
     private api: Api,
@@ -55,7 +59,6 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.loadRecentFiles();
-
     this.route.paramMap.subscribe(params => {
       const idParam = params.get('id');
       if (idParam) {
@@ -69,11 +72,8 @@ export class Dashboard implements OnInit {
 
   loadRecentFiles(): void {
     this.api.getRecentFiles().subscribe({
-      next: (files) => {
-        this.recentFiles = files || [];
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error("Erreur fichiers récents:", err)
+      next: (files) => { this.recentFiles = files || []; this.cdr.detectChanges(); },
+      error: (err) => console.error("Erreur chargement fichiers récents:", err)
     });
   }
 
@@ -84,40 +84,23 @@ export class Dashboard implements OnInit {
 
     this.api.getFileDashboard(fileId).subscribe({
       next: (response: any) => {
-        try {
-          this.processApiResponse(response);
-        } catch (err) {
-          console.error("Erreur traitement JSON:", err);
-        } finally {
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
+        this.processApiResponse(response);
+        this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error("Erreur HTTP Backend:", err);
+        console.error("Erreur chargement dashboard:", err);
         this.loading = false;
         this.cdr.detectChanges();
       }
     });
   }
 
-  onSelectFileFromDropdown(fileId: number): void {
-    if (fileId) {
-      this.router.navigate(['/dashboard', fileId]);
-    }
-  }
-
   private processApiResponse(response: any): void {
-    if (!response) {
-      this.allSheetsData = {};
-      this.sheets = [];
-      return;
-    }
-
+    if (!response) return;
     this.filename = response.filename || '';
     this.allSheetsData = response.sheets ? response.sheets : response;
     this.sheets = Object.keys(this.allSheetsData || {});
-
     if (this.sheets.length > 0) {
       this.selectSheet(this.sheets[0]);
     }
@@ -127,260 +110,211 @@ export class Dashboard implements OnInit {
     this.selectedSheet = sheetName;
     const sheetData = this.allSheetsData[sheetName] || {};
 
-    this.kpis = sheetData.kpis || {};
-    this.charts = Array.isArray(sheetData.charts) ? sheetData.charts : [];
-    this.objectives = Array.isArray(sheetData.objectives) ? sheetData.objectives : [];
+    this.kpisRaw = sheetData.kpis || {};
+    this.chartsRaw = Array.isArray(sheetData.charts) ? sheetData.charts : [];
+    this.objectivesRaw = Array.isArray(sheetData.objectives) ? sheetData.objectives : [];
 
-    if (this.charts.length > 0) {
-      const dynamicGroups = this.charts
-        .map((chart: any) => {
-          if (!chart) return 'Autres';
-          return chart.group || chart.category || this.mapToExactExcelHeaders(chart.title || '');
-        })
-        .filter((group: string, index: number, self: string[]) => group && self.indexOf(group) === index);
+    // Extraction des catégories uniques (Colonnes Principales uniquement)
+    this.extractColumnCategories();
 
-      this.views = dynamicGroups;
-    } else {
-      this.views = [];
+    // Sélection de la première colonne par défaut
+    if (this.columnCategories.length > 0) {
+      this.onSelectColumnCategory(this.columnCategories[0]);
     }
 
-    this.buildKpiComparisons();
-    this.selectedView = 'kpi';
     this.cdr.detectChanges();
   }
 
-  private buildKpiComparisons(): void {
-    this.combinedKpiCards = [];
-    if (!this.kpis) return;
+  /**
+   * Construit la liste unique des Colonnes Principales pour le Menu
+   */
+  private extractColumnCategories(): void {
+    const categorySet = new Set<string>();
 
-    // 1. Dictionnaire d'objectifs nettoyés
-    const targetMap = new Map<string, number>();
-
-    if (Array.isArray(this.objectives)) {
-      this.objectives.forEach((obj: any) => {
-        if (!obj) return;
-
-        if (obj.metric && obj.target_value !== undefined) {
-          targetMap.set(this.normalizeKey(obj.metric), Number(obj.target_value));
-        } else if (Array.isArray(obj.series)) {
-          const targetSerie = obj.series.find((s: any) => 
-            s.name && (s.name.includes('Objectif') || s.name.includes('F1'))
-          );
-          if (targetSerie && Array.isArray(targetSerie.data)) {
-            const validVals = targetSerie.data.filter((v: any) => typeof v === 'number' && !isNaN(v));
-            if (validVals.length > 0) {
-              const avg = validVals.reduce((a: number, b: number) => a + b, 0) / validVals.length;
-              const key = obj.title ? obj.title.split(':')[0].trim() : '';
-              if (key) targetMap.set(this.normalizeKey(key), avg);
-            }
-          }
-        }
-      });
-    }
-
-    // 2. Association des KPIs et Cibles
-    Object.keys(this.kpis).forEach(key => {
-      let rawVal = this.kpis[key];
-
-      if (rawVal && typeof rawVal === 'object') {
-        rawVal = rawVal.mean !== undefined ? rawVal.mean : rawVal.sum;
-      }
-
-      const numericVal = typeof rawVal === 'number' ? rawVal : parseFloat(rawVal);
-      const isNum = !isNaN(numericVal);
-      const normKey = this.normalizeKey(key);
-
-      let targetVal = targetMap.get(normKey) ?? null;
-
-      if (targetVal === null) {
-        for (const [tKey, tVal] of targetMap.entries()) {
-          const cleanNormKey = normKey.replace('f1', '');
-          const cleanTKey = tKey.replace('f1', '');
-          if (cleanNormKey.includes(cleanTKey) || cleanTKey.includes(cleanNormKey)) {
-            targetVal = tVal;
-            break;
-          }
-        }
-      }
-
-      const unit = this.detectUnit(key);
-
-      let diff: number | null = null;
-      let rate: number | null = null;
-      let status: 'success' | 'warning' | 'danger' | 'neutral' = 'neutral';
-
-      if (isNum && targetVal !== null && targetVal !== 0) {
-        diff = numericVal - targetVal;
-        rate = (numericVal / targetVal) * 100;
-
-        if (rate >= 95) status = 'success';
-        else if (rate >= 80) status = 'warning';
-        else status = 'danger';
-      }
-
-      this.combinedKpiCards.push({
-        key,
-        label: this.cleanLabel(key),
-        actual: isNum ? Number(numericVal.toFixed(1)) : rawVal,
-        target: targetVal !== null ? Number(targetVal.toFixed(1)) : null,
-        unit,
-        difference: diff !== null ? Number(diff.toFixed(1)) : null,
-        achievementRate: rate !== null ? Math.min(Math.round(rate), 200) : null,
-        status
-      });
-    });
-  }
-
-  private cleanLabel(key: string): string {
-    if (!key) return '';
-    const words = key.replace(/_/g, ' ').trim().split(/\s+/);
-    const uniqueWords = words.filter((word, index) => words.indexOf(word) === index);
-    return uniqueWords.join(' ');
-  }
-
-  private normalizeKey(key: string): string {
-    return key.toLowerCase().replace(/[^a-z0-9]/g, '');
-  }
-
-  private detectUnit(key: string): string {
-    const lower = key.toLowerCase();
-    if (lower.includes('rendement') || lower.includes('pct') || lower.includes('%')) return '%';
-    if (lower.includes('kwh') || lower.includes('energie')) return 'kWh';
-    if (lower.includes('tonnage') || lower.includes('tonnes') || lower.includes(' t_') || lower.endsWith(' h') || lower.endsWith(' sec')) return 'T';
-    if (lower.includes('g_') || lower.includes('gramme')) return 'g';
-    return '';
-  }
-
-  private mapToExactExcelHeaders(title: string): string {
-    if (!title) return 'Autres';
-    return title.replace(/_/g, ' ');
-  }
-
-  private isPercentUnit(name: string): boolean {
-    if (!name) return false;
-    const lower = name.toLowerCase().trim();
-    return lower.includes('%') || lower.includes('pct') || lower.includes('rendement');
-  }
-
-  changeView(view: string): void {
-    this.selectedView = view;
-    if (view === "kpi") {
-      this.cdr.detectChanges();
-      return;
-    }
-
-    const rawCategoryCharts = (this.charts || []).filter((chart: any) => {
-      if (!chart) return false;
-      const chartGroup = chart.group || chart.category || this.mapToExactExcelHeaders(chart.title || '');
-      return chartGroup === view;
+    // Extraire depuis les graphiques
+    this.chartsRaw.forEach((chart: any) => {
+      if (chart.category) categorySet.add(chart.category);
     });
 
-    let allSeries: any[] = [];
-    let xAxisData: any[] = [];
-
-    rawCategoryCharts.forEach((chart: any) => {
-      if (chart && Array.isArray(chart.xAxis) && chart.xAxis.length > 0) {
-        xAxisData = chart.xAxis;
-      }
-      if (chart && Array.isArray(chart.series) && chart.series.length > 0) {
-        allSeries.push(...chart.series);
-      }
+    // Compléter depuis les KPIs
+    Object.keys(this.kpisRaw).forEach(col => {
+      const parts = col.split('_');
+      const cat = parts.length > 1 ? parts.slice(0, parts.length - 1).join(' ') : 'Général';
+      categorySet.add(cat);
     });
 
-    const percentSeries = allSeries.filter(serie => serie && this.isPercentUnit(serie.name));
-    const valueSeries = allSeries.filter(serie => serie && !this.isPercentUnit(serie.name));
+    this.columnCategories = Array.from(categorySet);
+  }
 
-    const finalSeparatedCharts: any[] = [];
+  /**
+   * Clic sur une Colonne dans le Menu
+   */
+  onSelectColumnCategory(category: string): void {
+    this.selectedCategory = category;
 
-    if (valueSeries.length > 0) {
-      finalSeparatedCharts.push({
-        title: `${view} - Quantités & Volumes`,
-        xAxis: xAxisData,
-        series: valueSeries,
-        yAxisUnit: 'Valeurs'
-      });
-    }
+    // 1. Filtrer et construire les KPIs
+    this.buildKPIsForCategory(category);
 
-    if (percentSeries.length > 0) {
-      finalSeparatedCharts.push({
-        title: `${view} - Ratios & Rendements (%)`,
-        xAxis: xAxisData,
-        series: percentSeries,
-        yAxisUnit: '%'
-      });
-    }
+    // 2. Filtrer les graphiques par unité (% vs unités physiques)
+    this.buildChartsForCategory(category);
 
-    this.filteredCharts = finalSeparatedCharts;
+    // 3. Filtrer les graphiques d'objectifs F1 (appairage strict i - 1)
+    this.buildObjectiveChartsForCategory(category);
+
     this.cdr.detectChanges();
   }
 
-  formatKey(key: any): string {
-    return this.cleanLabel(String(key));
+  /**
+   * 1. KPIs de la colonne sélectionnée
+   */
+  private buildKPIsForCategory(category: string): void {
+    this.selectedColumnKPIs = [];
+
+    Object.keys(this.kpisRaw).forEach(col => {
+      const parts = col.split('_');
+      const cat = parts.length > 1 ? parts.slice(0, parts.length - 1).join(' ') : 'Général';
+
+      if (cat === category) {
+        const rawKPI = this.kpisRaw[col];
+        const subName = parts.length > 1 ? parts[parts.length - 1] : col;
+
+        let status: 'success' | 'warning' | 'danger' | 'neutral' = 'neutral';
+        if (rawKPI.target_f1 !== null && rawKPI.target_f1 !== 0) {
+          const rate = (rawKPI.value / rawKPI.target_f1) * 100;
+          if (rate >= 95) status = 'success';
+          else if (rate >= 80) status = 'warning';
+          else status = 'danger';
+        }
+
+        this.selectedColumnKPIs.push({
+          fullName: col,
+          subName: subName,
+          value: rawKPI.value,
+          average: rawKPI.average,
+          sum: rawKPI.sum,
+          trend: rawKPI.trend,
+          targetF1: rawKPI.target_f1,
+          unit: rawKPI.unit,
+          type: rawKPI.type,
+          status: status
+        });
+      }
+    });
   }
 
-  getChartOption(chart: any): any {
-    const isPercentChart = chart.yAxisUnit === '%';
+  /**
+   * 2. Graphiques Temporels (Séparés par Unité)
+   */
+  private buildChartsForCategory(category: string): void {
+    this.categoryChartOptions = [];
 
-    return {
-      title: {
-        text: chart.title,
-        left: "center",
-        textStyle: { color: '#eeeeee', fontSize: 15 }
-      },
-      tooltip: {
-        trigger: "axis",
-        backgroundColor: '#1e222b',
-        borderColor: '#2e3846',
-        textStyle: { color: '#eeeeee' }
-      },
-      legend: {
-        bottom: "0%",
-        left: "center",
-        textStyle: { color: '#95a5a6' }
-      },
-      grid: {
-        left: "5%",
-        right: "5%",
-        bottom: "18%",
-        containLabel: true
-      },
-      xAxis: {
-        type: "category",
-        data: chart.xAxis || [],
-        axisLine: { lineStyle: { color: '#2e3846' } },
-        axisLabel: { color: '#95a5a6' }
-      },
-      yAxis: {
-        type: "value",
-        name: chart.yAxisUnit,
-        nameTextStyle: { color: '#95a5a6' },
-        min: isPercentChart ? 0 : null,
-        max: isPercentChart ? 100 : null,
-        splitLine: { lineStyle: { color: '#2e3846' } },
-        axisLabel: { color: '#95a5a6' }
-      },
-      series: (chart.series || []).map((serie: any) => ({
-        name: this.formatKey(serie.name),
-        type: "line",
-        smooth: true,
-        data: serie.data || []
-      }))
-    };
+    const categoryCharts = this.chartsRaw.filter((c: any) => c.category === category);
+
+    categoryCharts.forEach((chartData: any) => {
+      const isPercent = chartData.isPercent;
+
+      const option = {
+        title: {
+          text: chartData.title,
+          left: 'center',
+          textStyle: { color: '#ffffff', fontSize: 15 }
+        },
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: '#1e222b',
+          borderColor: '#2e3846',
+          textStyle: { color: '#ffffff' }
+        },
+        legend: { bottom: '0%', textStyle: { color: '#aaaaaa' } },
+        grid: { left: '4%', right: '4%', bottom: '15%', containLabel: true },
+        xAxis: {
+          type: 'category',
+          data: chartData.xAxis,
+          axisLine: { lineStyle: { color: '#2e3846' } },
+          axisLabel: { color: '#aaaaaa' }
+        },
+        yAxis: {
+          type: 'value',
+          name: chartData.unit,
+          min: isPercent ? 0 : null,
+          max: isPercent ? 100 : null,
+          axisLabel: { color: '#aaaaaa' },
+          splitLine: { lineStyle: { color: '#2e3846' } }
+        },
+        series: chartData.series.map((s: any) => ({
+          name: s.name,
+          type: 'line',
+          smooth: true,
+          data: s.data
+        }))
+      };
+
+      this.categoryChartOptions.push(option);
+    });
   }
 
-  hasKpis(): boolean {
-    return this.combinedKpiCards.length > 0;
-  }
+  /**
+   * 3. Graphiques d'Objectifs (F1 vs Sous-colonne Réelle qui le précède)
+   */
+  private buildObjectiveChartsForCategory(category: string): void {
+    this.objectiveChartOptions = [];
 
-  getSuccessCount(): number {
-    return this.combinedKpiCards.filter(c => c.status === 'success').length;
-  }
+    const categoryObjectives = this.objectivesRaw.filter((o: any) => o.category === category);
 
-  getWarningCount(): number {
-    return this.combinedKpiCards.filter(c => c.status === 'warning').length;
-  }
+    categoryObjectives.forEach((objData: any) => {
+      const isPercent = objData.isPercent;
 
-  getDangerCount(): number {
-    return this.combinedKpiCards.filter(c => c.status === 'danger').length;
+      const option = {
+        title: {
+          text: `Objectif F1 : ${objData.real_sub_name}`,
+          subtext: `Comparaison Réel vs Objectif (${objData.unit})`,
+          left: 'center',
+          textStyle: { color: '#ffffff', fontSize: 14 },
+          subtextStyle: { color: '#aaaaaa', fontSize: 11 }
+        },
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: '#1e222b',
+          borderColor: '#2e3846',
+          textStyle: { color: '#ffffff' }
+        },
+        legend: { bottom: '0%', textStyle: { color: '#aaaaaa' } },
+        grid: { left: '4%', right: '4%', bottom: '15%', containLabel: true },
+        xAxis: {
+          type: 'category',
+          data: objData.xAxis,
+          axisLine: { lineStyle: { color: '#2e3846' } },
+          axisLabel: { color: '#aaaaaa' }
+        },
+        yAxis: {
+          type: 'value',
+          name: objData.unit,
+          min: isPercent ? 0 : null,
+          max: isPercent ? 100 : null,
+          axisLabel: { color: '#aaaaaa' },
+          splitLine: { lineStyle: { color: '#2e3846' } }
+        },
+        series: [
+          {
+            name: objData.series[0].name,
+            type: 'line',
+            smooth: true,
+            data: objData.series[0].data,
+            itemStyle: { color: '#00d2d3' },
+            lineStyle: { width: 3 }
+          },
+          {
+            name: objData.series[1].name,
+            type: 'line',
+            smooth: true,
+            data: objData.series[1].data,
+            itemStyle: { color: '#ff6b6b' },
+            lineStyle: { type: 'dashed', width: 2 }
+          }
+        ]
+      };
+
+      this.objectiveChartOptions.push(option);
+    });
   }
 }
