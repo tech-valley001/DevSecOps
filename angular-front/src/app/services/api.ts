@@ -24,10 +24,22 @@ export class Api {
   getFileDashboard(fileId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/files/${fileId}/dashboard`);
   }
-// Remplace 'file: File' par 'file: globalThis.File'
-analyzeCSV(file: any): Observable<any> {
-  const formData = new FormData();
-  formData.append('file', file);
-  return this.http.post<any>(`${this.baseUrl}/analyze`, formData);
+
+  analyzeCSV(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.baseUrl}/analyze`, formData);
+  }
+
+  deleteFile(fileId: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/files/${fileId}`);
+  }
+deleteMultipleFiles(fileIds: number[]): Observable<any> {
+  console.log('Payload envoyé à FastAPI :', { ids: fileIds });
+  return this.http.post<any>(`${this.baseUrl}/files/delete-multiple`, { ids: fileIds });
 }
+
+  deleteAllFiles(): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/files/delete-all`);
+  }
 }

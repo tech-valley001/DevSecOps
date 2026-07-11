@@ -1,23 +1,540 @@
-.fs-7 { font-size: 0.8rem; }
-.fs-8 { font-size: 0.7rem; }
+/* ========================================
+   STYLES GÉNÉRAUX DU DASHBOARD
+   ======================================== */
+.dashboard-wrapper {
+    max-width: 2000px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #3e3a36;
+    min-height: 100vh;
+}
+
+/* ========================================
+   EN-TÊTE SUPERIEUR
+   ======================================== */
+.header-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #f0ebe6;
+    border-radius: 16px;
+    padding: 16px 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 12px rgba(190, 170, 150, 0.10);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.btn-accueil {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    background: #f5f0eb;
+    color: #4a3f39;
+    border: none;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: background 0.2s, transform 0.1s;
+    cursor: pointer;
+}
+
+.btn-accueil:hover {
+    background: #ede6de;
+    transform: translateX(-2px);
+}
+
+.badge-filename {
+    display: inline-block;
+    background: #fbf8f5;
+    border: 1px solid #f0ebe6;
+    border-radius: 30px;
+    padding: 6px 18px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #5a4f48;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.label-sheet {
+    font-weight: 500;
+    color: #5a4f48;
+    font-size: 0.95rem;
+}
+
+.select-sheet {
+    padding: 8px 16px;
+    border: 1px solid #d6cdc4;
+    border-radius: 10px;
+    background: #fcfaf8;
+    font-size: 0.95rem;
+    color: #3e3a36;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    min-width: 150px;
+}
+
+.select-sheet:hover {
+    border-color: #c4b4a8;
+    background: #faf7f4;
+}
+
+.select-sheet:focus {
+    outline: none;
+    border-color: #bea894;
+    background: #ffffff;
+}
+
+/* ========================================
+   GRILLE PRINCIPALE
+   ======================================== */
+.main-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 28px;
+}
+
+/* ========================================
+   SIDEBAR - MENU LATÉRAL
+   ======================================== */
+.sidebar {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+}
+
+.sidebar-card {
+    background: #ffffff;
+    border: 1px solid #f0ebe6;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(190, 170, 150, 0.10);
+}
+
+.sidebar-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #7a6b5e;
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0ebe6;
+}
+
+.list-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #fcfaf8;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #4a3f39;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: left;
+}
+
+.list-group-item:hover {
+    background: #f7f2ec;
+    border-color: #e8ddd4;
+    transform: translateX(4px);
+}
+
+.list-group-item.active {
+    background: #f5eee9;
+    border-color: #d6cdc4;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(190, 170, 150, 0.15);
+}
+
+.list-group-item.active .item-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.item-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.item-arrow {
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.25s ease;
+    color: #bea894;
+}
+
+.list-group-item:hover .item-arrow {
+    opacity: 0.6;
+    transform: translateX(0);
+}
+
+/* ========================================
+   ZONE PRINCIPALE
+   ======================================== */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.section {
+    background: #ffffff;
+    border: 1px solid #f0ebe6;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(190, 170, 150, 0.10);
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4a3f39;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0ebe6;
+}
+
+/* ========================================
+   KPIS
+   ======================================== */
+.kpi-title {
+    color: #4a3f39;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
 
 .kpi-card {
-  background: linear-gradient(145deg, rgba(30, 34, 43, 0.9), rgba(20, 24, 30, 0.95));
-  border-radius: 10px;
-  transition: transform 0.2s ease;
+    background: #fcfaf8;
+    border: 1px solid #f0ebe6;
+    border-radius: 14px;
+    padding: 18px 20px;
+    transition: all 0.2s ease;
 }
 
 .kpi-card:hover {
-  transform: translateY(-3px);
-  border-color: #0d6efd !important;
+    background: #faf7f4;
+    border-color: #e0d6cc;
+    box-shadow: 0 4px 12px rgba(190, 170, 150, 0.12);
+    transform: translateY(-2px);
 }
 
-.hover-light:hover {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+.kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
 }
 
-.accordion-menu button {
-  transition: background-color 0.2s;
+.kpi-name {
+    font-weight: 500;
+    color: #5a4f48;
+    font-size: 0.9rem;
 }
+
+.kpi-value {
+    margin-bottom: 12px;
+}
+
+.value-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #3e3a36;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.value-unit {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: #7a6b5e;
+    margin-left: 4px;
+}
+
+.kpi-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #5a4f48;
+    border-top: 1px solid #f0ebe6;
+    padding-top: 10px;
+}
+
+.text-success {
+    color: #4a8c6b;
+}
+
+.text-danger {
+    color: #b56a5a;
+}
+
+.target-f1 {
+    color: #7a6b5e;
+}
+
+.target-f1 strong {
+    color: #4a3f39;
+}
+
+/* ========================================
+   BADGES DE STATUT
+   ======================================== */
+.badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.badge-success {
+    background: #e6f2ed;
+    color: #3a7a5e;
+}
+
+.badge-warning {
+    background: #f5eee1;
+    color: #a6854a;
+}
+
+.badge-danger {
+    background: #f5e6e2;
+    color: #9e5a4a;
+}
+
+.badge-neutral {
+    background: #f0ebe6;
+    color: #7a6b5e;
+}
+
+/* ========================================
+   GRAPHIQUES
+   ======================================== */
+.chart-title {
+    color: #4a3f39;
+}
+
+.objective-title {
+    color: #4a3f39;
+}
+
+.charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+}
+
+.chart-card {
+    background: #fcfaf8;
+    border: 1px solid #f0ebe6;
+    border-radius: 14px;
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.chart-card:hover {
+    background: #faf7f4;
+    border-color: #e0d6cc;
+    box-shadow: 0 4px 12px rgba(190, 170, 150, 0.10);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 1024px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .sidebar {
+        position: relative;
+        top: 0;
+    }
+
+    .sidebar-card {
+        padding: 16px;
+    }
+
+    .list-group {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .list-group-item {
+        flex: 1 1 auto;
+        min-width: 140px;
+        justify-content: center;
+    }
+
+    .list-group-item .item-arrow {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-wrapper {
+        padding: 16px;
+    }
+
+    .header-top {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        padding: 16px;
+    }
+
+    .header-left {
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .header-right {
+        justify-content: stretch;
+        flex-wrap: wrap;
+    }
+
+    .select-sheet {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .badge-filename {
+        max-width: 200px;
+        font-size: 0.85rem;
+    }
+
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+
+    .section {
+        padding: 16px;
+    }
+
+    .value-number {
+        font-size: 1.6rem;
+    }
+
+    .kpi-card {
+        padding: 14px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-left {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .btn-accueil {
+        justify-content: center;
+    }
+
+    .badge-filename {
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .header-right {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .select-sheet {
+        width: 100%;
+    }
+
+    .list-group-item {
+        min-width: 100%;
+        justify-content: space-between;
+    }
+
+    .list-group-item .item-arrow {
+        display: inline;
+    }
+
+    .chart-card {
+        padding: 12px;
+    }
+
+    .section-title {
+        font-size: 1rem;
+    }
+}
+
+/* ========================================
+   UTILITAIRES POUR ECHARTS
+   ======================================== */
+/* Assure que les conteneurs ECharts s'affichent correctement */
+.chart-card div[echarts] {
+    min-height: 300px;
+}
+
+/* Animation d'apparition pour les cartes */
+.kpi-card,
+.chart-card {
+    animation: fadeInUp 0.4s ease forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Délais d'animation pour les KPIs */
+.kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.kpi-card:nth-child(2) { animation-delay: 0.10s; }
+.kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.kpi-card:nth-child(4) { animation-delay: 0.20s; }
+.kpi-card:nth-child(5) { animation-delay: 0.25s; }
+.kpi-card:nth-child(6) { animation-delay: 0.30s; }

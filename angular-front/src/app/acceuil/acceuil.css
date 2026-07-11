@@ -1,192 +1,388 @@
-.home-container {
-  min-height: 100vh;
-  background-color: #0f172a;
-  color: #f8fafc;
-  padding: 2rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* ========================================
+   STYLES GÉNÉRAUX
+   ======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.home-header {
-  text-align: center;
-  margin-bottom: 3rem;
+.acceuil-container {
+    max-width: 2000px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #3e3a36;
 }
 
-.home-header h1 {
-  font-size: 2.5rem;
-  color: #38bdf8;
-  margin-bottom: 0.5rem;
+/* ========================================
+   CARTES
+   ======================================== */
+.card-box {
+    background: #ffffff;
+    border: 1px solid #f0ebe6;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(190, 170, 150, 0.12);
+    padding: 24px;
+    margin-bottom: 28px;
+    transition: box-shadow 0.2s ease;
 }
 
-.home-header p {
-  color: #94a3b8;
-  font-size: 1.1rem;
+.card-box:hover {
+    box-shadow: 0 8px 24px rgba(190, 170, 150, 0.18);
 }
 
-.home-content {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.card {
-  background: #1e293b;
-  border-radius: 12px;
-  border: 1px solid #334155;
-  overflow: hidden;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4a3f39;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
 }
 
 .card-header {
-  background: #0f172a;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #334155;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
-.card-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  color: #e2e8f0;
+/* ========================================
+   ZONE D'IMPORTATION
+   ======================================== */
+.import-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
 }
 
-.card-body {
-  padding: 1.5rem;
+.file-input {
+    flex: 1 1 260px;
+    padding: 10px 14px;
+    border: 1px dashed #d6cdc4;
+    border-radius: 10px;
+    background: #fcfaf8;
+    font-size: 0.95rem;
+    color: #5a4f48;
+    transition: border-color 0.2s, background 0.2s;
 }
 
-.subtitle {
-  color: #94a3b8;
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
+.file-input:hover {
+    border-color: #c4b4a8;
+    background: #faf7f4;
 }
 
-.file-drop-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 2px dashed #475569;
-  border-radius: 8px;
-  padding: 2rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: #0f172a;
-  margin-bottom: 1.5rem;
+.file-input:focus {
+    outline: none;
+    border-color: #bea894;
+    background: #ffffff;
 }
 
-.file-drop-area:hover {
-  border-color: #38bdf8;
-  background: #1e293b;
+/* ========================================
+   BOUTONS
+   ======================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    background: #f5f0eb;
+    color: #4a3f39;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, opacity 0.2s;
+    white-space: nowrap;
 }
 
-.file-icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+.btn:active {
+    transform: scale(0.97);
 }
 
-.file-text {
-  color: #94a3b8;
-}
-
-.file-text.selected {
-  color: #38bdf8;
-  font-weight: bold;
+.btn:disabled {
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 .btn-primary {
-  width: 100%;
-  padding: 0.85rem;
-  background: #0284c7;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.2s;
+    background: #e8ddd4;
+    color: #3e3530;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #0369a1;
+    background: #ddd0c4;
 }
 
-.btn-primary:disabled {
-  background: #475569;
-  cursor: not-allowed;
-  opacity: 0.6;
+.btn-warning {
+    background: #f5eee9;
+    color: #7a5f4b;
 }
 
-.d-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.btn-warning:hover:not(:disabled) {
+    background: #efe5dc;
 }
 
+.btn-danger {
+    background: #f5e6e2;
+    color: #9e5a4a;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #f0dad4;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: #7f6e62;
+}
+
+.btn-icon:hover {
+    background: #f5f0eb;
+    color: #4a3f39;
+}
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* ========================================
+   TABLEAU
+   ======================================== */
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid #f0ebe6;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    min-width: 560px;
+}
+
+.custom-table thead {
+    background: #fbf8f5;
+}
+
+.custom-table th {
+    text-align: left;
+    padding: 14px 16px;
+    font-weight: 600;
+    color: #5a4f48;
+    border-bottom: 1px solid #f0ebe6;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.custom-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f5f0eb;
+    vertical-align: middle;
+    color: #3e3a36;
+}
+
+.custom-table tbody tr {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.custom-table tbody tr:hover {
+    background: #fcf9f7;
+}
+
+.custom-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.col-checkbox {
+    width: 40px;
+    text-align: center;
+}
+
+/* ========================================
+   CHECKBOX PERSONNALISÉE
+   ======================================== */
+.custom-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #c4b4a8;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: accent-color 0.2s;
+}
+
+.custom-checkbox:hover {
+    accent-color: #b09e90;
+}
+
+/* ========================================
+   BADGE
+   ======================================== */
 .badge {
-  background: #0284c7;
-  color: white;
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
+    display: inline-block;
+    background: #f5f0eb;
+    color: #5a4f48;
+    padding: 4px 14px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
-.history-list {
-  padding: 1rem;
-  max-height: 450px;
-  overflow-y: auto;
+/* ========================================
+   ÉTAT VIDE
+   ======================================== */
+.empty-state {
+    padding: 36px 20px;
+    text-align: center;
+    color: #8f7e72;
+    background: #fcfaf8;
+    border-radius: 12px;
+    font-size: 1rem;
 }
 
-.history-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+/* ========================================
+   SPINNER
+   ======================================== */
+.spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #d6cdc4;
+    border-top-color: #7f6e62;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
 }
 
-.history-item:hover {
-  transform: translateX(4px);
-  border-color: #38bdf8;
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-.file-info {
-  display: flex;
-  flex-direction: column;
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 700px) {
+    .acceuil-container {
+        padding: 16px;
+    }
+
+    .card-box {
+        padding: 18px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .import-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .import-controls .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .custom-table {
+        font-size: 0.85rem;
+        min-width: 0;
+    }
+
+    .custom-table th,
+    .custom-table td {
+        padding: 10px 12px;
+    }
+
+    .file-name {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
-.file-name {
-  color: #e2e8f0;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
+@media (max-width: 480px) {
+    .custom-table thead {
+        display: none;
+    }
 
-.file-date {
-  color: #64748b;
-  font-size: 0.8rem;
-}
+    .custom-table,
+    .custom-table tbody,
+    .custom-table tr,
+    .custom-table td {
+        display: block;
+        width: 100%;
+    }
 
-.btn-view {
-  background: transparent;
-  border: 1px solid #38bdf8;
-  color: #38bdf8;
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
+    .custom-table tr {
+        padding: 12px 0;
+        border-bottom: 1px solid #f0ebe6;
+    }
 
-.history-item:hover .btn-view {
-  background: #38bdf8;
-  color: #0f172a;
-}
+    .custom-table td {
+        border: none;
+        padding: 6px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
 
-.no-data {
-  text-align: center;
-  color: #64748b;
-  padding: 2rem;
+    .custom-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #7a6b5e;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .col-checkbox {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .text-right {
+        text-align: left;
+    }
+
+    .btn-icon {
+        font-size: 1.4rem;
+        padding: 4px 12px;
+    }
 }

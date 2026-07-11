@@ -1,12 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Api, RecentFile } from '../services/api';
 
 @Component({
   selector: 'app-acceuil',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './acceuil.html',
   styleUrls: ['./acceuil.css']
 })
@@ -15,19 +16,30 @@ export class Acceuil implements OnInit {
   recentFiles: RecentFile[] = [];
   loading: boolean = false;
 
-  constructor(private api: Api, private router: Router) {}
+  // Gestion des sélections pour suppression
+  selectedFileIds: number[] = [];
+  selectAll: boolean = false;
+
+  constructor(
+    private api: Api, 
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    // Charge immédiatement la liste des fichiers enregistrés dans PostgreSQL dès l'ouverture de l'application
+    // Exécuté immédiatement au démarrage de l'application
     this.loadRecentFiles();
   }
 
   loadRecentFiles(): void {
     this.api.getRecentFiles().subscribe({
       next: (files) => {
-        this.recentFiles = files;
+        this.recentFiles = files || [];
+        this.selectedFileIds = [];
+        this.selectAll = false;
+        this.cdr.detectChanges(); // Forcer la mise à jour de la vue Angular
       },
-      error: (err) => console.error("Erreur chargement récents :", err)
+      error: (err) => console.error("Erreur chargement des fichiers :", err)
     });
   }
 
@@ -45,6 +57,7 @@ export class Acceuil implements OnInit {
     this.api.analyzeCSV(this.selectedFile).subscribe({
       next: (res) => {
         this.loading = false;
+        this.loadRecentFiles(); // Recharge la liste BDD mise à jour
         if (res.file_id) {
           this.router.navigate(['/dashboard', res.file_id]);
         }
@@ -58,5 +71,63 @@ export class Acceuil implements OnInit {
 
   openDashboard(fileId: number): void {
     this.router.navigate(['/dashboard', fileId]);
+  }
+
+  // ==========================================
+  // GESTION DES SÉLECTIONS ET SUPPRESSIONS
+  // ==========================================
+
+  toggleSelectAll(): void {
+    if (this.selectAll) {
+      this.selectedFileIds = this.recentFiles.map(f => f.id);
+    } else {
+      this.selectedFileIds = [];
+    }
+  }
+
+  toggleFileSelection(fileId: number): void {
+    const index = this.selectedFileIds.indexOf(fileId);
+    if (index > -1) {
+      this.selectedFileIds.splice(index, 1);
+    } else {
+      this.selectedFileIds.push(fileId);
+    }
+    this.selectAll = this.selectedFileIds.length === this.recentFiles.length;
+  }
+
+  isFileSelected(fileId: number): boolean {
+    return this.selectedFileIds.includes(fileId);
+  }
+
+  deleteSingleFile(fileId: number, event: Event): void {
+    event.stopPropagation(); // Évite la navigation vers le dashboard
+    if (confirm("Voulez-vous vraiment supprimer ce fichier ?")) {
+      this.api.deleteFile(fileId).subscribe({
+        next: () => this.loadRecentFiles(),
+        error: (err) => console.error("Erreur lors de la suppression :", err)
+      });
+    }
+  }
+
+  deleteSelectedFiles(): void {
+    if (this.selectedFileIds.length === 0) return;
+
+    if (confirm(`Voulez-vous supprimer les ${this.selectedFileIds.length} fichier(s) sélectionné(s) ?`)) {
+      this.api.deleteMultipleFiles(this.selectedFileIds).subscribe({
+        next: () => this.loadRecentFiles(),
+        error: (err) => console.error("Erreur suppression sélection :", err)
+      });
+    }
+  }
+
+  deleteAllFiles(): void {
+    if (this.recentFiles.length === 0) return;
+
+    if (confirm("⚠️ VOULEZ-VOUS SUPPRIMER TOUS LES FICHIERS DE LA BASE DE DONNÉES ? Action irréversible.")) {
+      this.api.deleteAllFiles().subscribe({
+        next: () => this.loadRecentFiles(),
+        error: (err) => console.error("Erreur suppression totale :", err)
+      });
+    }
   }
 }

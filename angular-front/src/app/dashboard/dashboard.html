@@ -1,110 +1,100 @@
-<div class="dashboard-wrapper bg-dark text-light min-vh-100 p-4">
+<!-- dashboard.html -->
+<div class="dashboard-wrapper">
 
   <!-- EN-TÊTE SUPERIEUR -->
-  <div class="d-flex justify-content-between align-items-center mb-4 bg-secondary bg-opacity-10 p-3 rounded border border-secondary">
-    <div class="d-flex align-items-center gap-3">
-      <a routerLink="/acceuil" class="btn btn-outline-light btn-sm">&larr; Accueil</a>
-      <span *ngIf="filename" class="badge bg-info text-dark fw-bold">{{ filename }}</span>
+  <div class="header-top">
+    <div class="header-left">
+      <a routerLink="/acceuil" class="btn-accueil">← Accueil</a>
+      <span *ngIf="filename" class="badge-filename">{{ filename }}</span>
     </div>
 
     <!-- SÉLECTEUR DE FEUILLE -->
-    <div class="d-flex align-items-center gap-2" *ngIf="sheets.length > 0">
-      <label class="form-label mb-0 fw-bold fs-7">Feuille :</label>
-      <select class="form-select form-select-sm bg-dark text-light border-secondary" (change)="selectSheet($any($event.target).value)">
+    <div class="header-right" *ngIf="sheets.length > 0">
+      <label class="label-sheet">Feuille :</label>
+      <select class="select-sheet" (change)="selectSheet($any($event.target).value)">
         <option *ngFor="let s of sheets" [value]="s" [selected]="s === selectedSheet">{{ s }}</option>
       </select>
     </div>
   </div>
 
-  <div class="row g-4">
+  <div class="main-grid">
     
-    <!-- MENU LATÉRAL : SEULEMENT LES COLONNES PRINCIPALES -->
-    <div class="col-md-3">
-      <div class="bg-dark border border-secondary rounded p-3 shadow-sm">
-        <h6 class="text-uppercase text-info fs-7 fw-bold mb-3">📌 Colonnes</h6>
+    <!-- MENU LATÉRAL -->
+    <div class="sidebar">
+      <div class="sidebar-card">
+        <h6 class="sidebar-title">📌 Colonnes</h6>
 
         <div class="list-group">
           <button 
             *ngFor="let cat of columnCategories"
-            class="list-group-item list-group-item-action bg-secondary bg-opacity-10 text-light border-secondary mb-2 rounded d-flex justify-content-between align-items-center py-2"
+            class="list-group-item"
             [class.active]="selectedCategory === cat"
             (click)="onSelectColumnCategory(cat)">
-            <span class="fw-bold fs-7">📊 {{ cat }}</span>
-            <span class="fs-8 text-muted">&rarr;</span>
+            <span class="item-label">📊 {{ cat }}</span>
+            <span class="item-arrow">→</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- ZONE PRINCIPALE DE VISUALISATION -->
-    <div class="col-md-9" *ngIf="selectedCategory">
+    <!-- ZONE PRINCIPALE -->
+    <div class="main-content" *ngIf="selectedCategory">
       
-      <!-- 1. CARTES KPIS DE LA COLONNE SÉLECTIONNÉE -->
-      <div class="mb-4" *ngIf="selectedColumnKPIs.length > 0">
-        <h6 class="text-info fw-bold mb-3 border-bottom border-secondary pb-2">
-          🎯 KPIs : {{ selectedCategory }}
-        </h6>
+      <!-- KPIS -->
+      <div class="section" *ngIf="selectedColumnKPIs.length > 0">
+        <h6 class="section-title kpi-title">🎯 KPIs : {{ selectedCategory }}</h6>
         
-        <div class="row g-3">
-          <div class="col-md-6 col-lg-4" *ngFor="let kpi of selectedColumnKPIs">
-            <div class="card bg-secondary bg-opacity-10 border-secondary p-3 shadow-sm h-100">
-              
-              <!-- En-tête KPI -->
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="fs-7 text-light fw-bold text-truncate">{{ kpi.subName }}</span>
-                <span class="badge" [ngClass]="{
-                  'bg-success': kpi.status === 'success',
-                  'bg-warning': kpi.status === 'warning',
-                  'bg-danger': kpi.status === 'danger',
-                  'bg-secondary': kpi.status === 'neutral'
-                }">{{ kpi.status }}</span>
-              </div>
-
-              <!-- Valeur Actuelle et Unité -->
-              <div class="my-1">
-                <h3 class="fw-bold my-0">
-                  {{ kpi.value }} 
-                  <small class="fs-7 text-muted">{{ kpi.unit }}</small>
-                </h3>
-              </div>
-
-              <!-- Tendance & Cible F1 -->
-              <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 fs-8 d-flex justify-content-between align-items-center">
-                <span [class.text-success]="kpi.trend >= 0" [class.text-danger]="kpi.trend < 0">
-                  {{ kpi.trend >= 0 ? '▲ +' : '▼ ' }}{{ kpi.trend }}
-                </span>
-                <span *ngIf="kpi.targetF1 !== null" class="text-info">
-                  Cible F1: <strong>{{ kpi.targetF1 }} {{ kpi.unit }}</strong>
-                </span>
-              </div>
-
+        <div class="kpi-grid">
+          <div class="kpi-card" *ngFor="let kpi of selectedColumnKPIs">
+            
+            <div class="kpi-header">
+              <span class="kpi-name">{{ kpi.subName }}</span>
+              <span class="badge" [ngClass]="{
+                'badge-success': kpi.status === 'success',
+                'badge-warning': kpi.status === 'warning',
+                'badge-danger': kpi.status === 'danger',
+                'badge-neutral': kpi.status === 'neutral'
+              }">{{ kpi.status }}</span>
             </div>
+
+            <div class="kpi-value">
+              <h3 class="value-number">
+                {{ kpi.value }} 
+                <small class="value-unit">{{ kpi.unit }}</small>
+              </h3>
+            </div>
+
+            <div class="kpi-footer">
+              <span [class.text-success]="kpi.trend >= 0" [class.text-danger]="kpi.trend < 0">
+                {{ kpi.trend >= 0 ? '▲ +' : '▼ ' }}{{ kpi.trend }}
+              </span>
+              <span *ngIf="kpi.targetF1 !== null" class="target-f1">
+                Cible F1: <strong>{{ kpi.targetF1 }} {{ kpi.unit }}</strong>
+              </span>
+            </div>
+
           </div>
         </div>
       </div>
 
-      <!-- 2. GRAPHIQUES ADAPTÉS PAR UNITÉS (% vs Autres) -->
-      <div class="mb-4" *ngIf="categoryChartOptions.length > 0">
-        <h6 class="text-info fw-bold mb-3 border-bottom border-secondary pb-2">
-          📈 Évolution Temporelle
-        </h6>
+      <!-- GRAPHIQUES ÉVOLUTION -->
+      <div class="section" *ngIf="categoryChartOptions.length > 0">
+        <h6 class="section-title chart-title">📈 Évolution Temporelle</h6>
 
-        <div class="d-flex flex-column gap-4">
-          <div class="card bg-secondary bg-opacity-10 border-secondary p-3 shadow-sm" *ngFor="let opt of categoryChartOptions">
-            <div echarts [options]="opt" style="height: 360px;"></div>
+        <div class="charts-container">
+          <div class="chart-card" *ngFor="let opt of categoryChartOptions">
+            <div echarts [options]="opt" style="height: 360px; width: 100%;"></div>
           </div>
         </div>
       </div>
 
-      <!-- 3. GRAPHIQUES D'OBJECTIFS (F1 vs Sous-colonne Réelle qui le précède) -->
-      <div *ngIf="objectiveChartOptions.length > 0">
-        <h6 class="text-success fw-bold mb-3 border-bottom border-secondary pb-2">
-          🎯 Comparaison avec les Objectifs F1
-        </h6>
+      <!-- GRAPHIQUES OBJECTIFS -->
+      <div class="section" *ngIf="objectiveChartOptions.length > 0">
+        <h6 class="section-title objective-title">🎯 Comparaison avec les Objectifs F1</h6>
 
-        <div class="d-flex flex-column gap-4">
-          <div class="card bg-secondary bg-opacity-10 border-secondary p-3 shadow-sm" *ngFor="let opt of objectiveChartOptions">
-            <div echarts [options]="opt" style="height: 350px;"></div>
+        <div class="charts-container">
+          <div class="chart-card" *ngFor="let opt of objectiveChartOptions">
+            <div echarts [options]="opt" style="height: 350px; width: 100%;"></div>
           </div>
         </div>
       </div>

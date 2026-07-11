@@ -1,11 +1,15 @@
+from __future__ import annotations
+from fastapi import Body, Depends, FastAPI, HTTPException
+from typing import Dict, List, Any
+
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import pandas as pd
 import numpy as np
-
 from database import engine, Base, get_db
 import models
+from models import ImportedFile
 from services.parser import load_excel
 from services.dashboard import (
     generate_kpis,
@@ -129,3 +133,53 @@ def get_file_dashboard(file_id: int, db: Session = Depends(get_db)):
         "imported_at": db_file.imported_at.strftime("%Y-%m-%d %H:%M:%S"),
         "sheets": response
     }
+@app.delete("/files/delete-all")
+def delete_all_files(db: Session = Depends(get_db)):
+    """ Supprime tous les fichiers de la BDD """
+    all_files = db.query(ImportedFile).all()
+    count = len(all_files)
+    for file in all_files:
+        db.delete(file)
+    db.commit()
+    return {"message": f"Tous les fichiers ({count}) ont été supprimés avec succès"}
+
+
+@app.post("/files/delete-multiple")
+def delete_multiple_files(
+    payload: Dict[str, Any] = Body(...), 
+    db: Session = Depends(get_db)
+):
+    """ Supprime une sélection de fichiers par leurs IDs """
+    ids = payload.get("ids", [])
+    
+    if not ids:
+        raise HTTPException(status_code=400, detail="Aucun ID valide fourni")
+
+    # Conversion explicite en int pour éviter les erreurs de type
+    try:
+        clean_ids = [int(x) for x in ids]
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Les IDs doivent être des entiers")
+
+    files_to_delete = db.query(ImportedFile).filter(ImportedFile.id.in_(clean_ids)).all()
+    
+    for file in files_to_delete:
+        db.delete(file)
+        
+    db.commit()
+    return {"message": f"{len(files_to_delete)} fichier(s) supprimé(s) avec succès"}
+
+
+
+
+
+@app.delete("/files/{file_id}")
+def delete_single_file(file_id: int, db: Session = Depends(get_db)):
+    """ Supprime un seul fichier par ID """
+    file_item = db.query(ImportedFile).filter(ImportedFile.id == file_id).first()
+    if not file_item:
+        raise HTTPException(status_code=404, detail="Fichier non trouvé")
+
+    db.delete(file_item)
+    db.commit()
+    return {"message": f"Fichier {file_id} supprimé avec succès"}
