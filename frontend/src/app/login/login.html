@@ -1,0 +1,207 @@
+<div class="login-container">
+
+  <div class="login-card">
+
+    <!-- ========================= -->
+    <!-- TITRE -->
+    <!-- ========================= -->
+
+    <div class="login-header">
+
+      <h1>Connexion</h1>
+
+      <p>
+        Connectez-vous à votre compte
+      </p>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- SUCCESS -->
+    <!-- ========================= -->
+
+    <div
+      class="success-message"
+      *ngIf="successMessage"
+    >
+
+      {{ successMessage }}
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- ERROR -->
+    <!-- ========================= -->
+
+    <div
+      class="error-message"
+      *ngIf="errorMessage"
+    >
+
+      {{ errorMessage }}
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- FORM -->
+    <!-- ========================= -->
+
+    <form
+      #loginForm="ngForm"
+      (ngSubmit)="login()"
+    >
+
+
+      <!-- ========================= -->
+      <!-- EMAIL -->
+      <!-- ========================= -->
+
+      <div class="form-group">
+
+        <label for="email">
+          Email
+        </label>
+
+        <input
+          id="email"
+          type="email"
+          name="email"
+
+          [(ngModel)]="email"
+
+          #emailInput="ngModel"
+
+          required
+          email
+
+          placeholder="exemple@email.com"
+
+          autocomplete="email"
+        />
+
+
+        <!-- Email obligatoire -->
+
+        <div
+          class="field-error"
+          *ngIf="
+            emailInput.invalid &&
+            emailInput.touched
+          "
+        >
+
+          <span
+            *ngIf="emailInput.errors?.['required']"
+          >
+            L'email est obligatoire.
+          </span>
+
+
+          <span
+            *ngIf="emailInput.errors?.['email']"
+          >
+            Veuillez entrer une adresse email valide.
+          </span>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ========================= -->
+      <!-- PASSWORD -->
+      <!-- ========================= -->
+
+      <div class="form-group">
+
+        <label for="password">
+          Mot de passe
+        </label>
+
+        <input
+          id="password"
+          type="password"
+          name="password"
+
+          [(ngModel)]="password"
+
+          #passwordInput="ngModel"
+
+          required
+
+          placeholder="Votre mot de passe"
+
+          autocomplete="current-password"
+        />
+
+
+        <div
+          class="field-error"
+          *ngIf="
+            passwordInput.invalid &&
+            passwordInput.touched
+          "
+        >
+
+          Le mot de passe est obligatoire.
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ========================= -->
+      <!-- BUTTON -->
+      <!-- ========================= -->
+
+      <button
+        type="submit"
+
+        class="login-button"
+
+        [disabled]="
+          loginForm.invalid ||
+          loading
+        "
+      >
+
+        <span *ngIf="!loading">
+          Se connecter
+        </span>
+
+        <span *ngIf="loading">
+          Connexion...
+        </span>
+
+      </button>
+
+    </form>
+
+
+    <!-- ========================= -->
+    <!-- REGISTER -->
+    <!-- ========================= -->
+
+    <div class="register-link">
+
+      <span>
+        Vous n'avez pas encore de compte ?
+      </span>
+
+      <button
+        type="button"
+        (click)="goToRegister()"
+      >
+        Créer un compte
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,190 @@
+.main-header {
+  height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 30px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.05);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+
+/* ========================= */
+/* LEFT */
+/* ========================= */
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+
+.logo {
+  
+
+  max-width: 120px; 
+  height: auto;   
+  display: block;   
+  object-fit: contain;
+}
+
+
+
+/* ========================= */
+/* NAVIGATION */
+/* ========================= */
+
+.navigation {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 22px;
+}
+
+
+.navigation a {
+
+  color: #4b5563;
+
+  text-decoration: none;
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+  transition: color 0.2s;
+}
+
+
+.navigation a:hover {
+
+  color: #2563eb;
+}
+
+
+.navigation a.active {
+
+  color: #2563eb;
+
+  font-weight: 600;
+}
+
+
+/* ========================= */
+/* CONNECTED STATUS */
+/* ========================= */
+
+.user-status {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  background: #ecfdf5;
+
+  color: #15803d;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+
+.status-dot {
+
+  width: 8px;
+
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #22c55e;
+}
+
+
+/* ========================= */
+/* EMAIL */
+/* ========================= */
+
+.user-email {
+
+  max-width: 180px;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  color: #6b7280;
+
+  font-size: 13px;
+}
+
+
+/* ========================= */
+/* LOGOUT */
+/* ========================= */
+
+.logout-button {
+
+  padding: 8px 14px;
+
+  border: 1px solid #dc2626;
+
+  border-radius: 6px;
+
+  background: transparent;
+
+  color: #dc2626;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+
+.logout-button:hover {
+
+  background: #dc2626;
+
+  color: white;
+}
+
+
+/* ========================= */
+/* CHECKING */
+/* ========================= */
+
+.checking {
+
+  color: #6b7280;
+
+  font-size: 14px;
+}

@@ -1,6 +1,9 @@
-fastapi
+fastapi[standard]
 uvicorn
 pandas
 python-multipart
 numpy
 openpyxl
+sqlalchemy
+passlib
+psycopg[binary]

@@ -1,0 +1,91 @@
+
+<div class="account-container">
+
+  <div class="account-card">
+
+    <!-- Chargement -->
+
+    <div
+      class="loading"
+      *ngIf="loading"
+    >
+      Chargement...
+    </div>
+
+
+    <!-- Erreur -->
+
+    <div
+      class="error-message"
+      *ngIf="errorMessage"
+    >
+      {{ errorMessage }}
+    </div>
+
+
+    <!-- Informations utilisateur -->
+
+    <div
+      *ngIf="!loading && user"
+    >
+
+      <div class="account-header">
+
+        <div class="avatar">
+          {{ user.email.charAt(0).toUpperCase() }}
+        </div>
+
+        <div>
+
+          <h1>Mon compte</h1>
+
+          <p>
+            Informations personnelles
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="account-section">
+
+        <h2>Informations du compte</h2>
+
+
+        <div class="info-row">
+
+          <span class="info-label">
+            Email
+          </span>
+
+          <span class="info-value">
+            {{ user.email }}
+          </span>
+
+        </div>
+
+
+        <div class="info-row">
+
+          <span class="info-label">
+            Statut
+          </span>
+
+          <span class="account-status">
+
+            <span class="status-dot"></span>
+
+            Connecté
+
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suivi de Performance - Accueil</title>
+  <style>
+    /* Reset et styles de base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      background-color: #f9fafc;
+      color: #1e2a3a;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* En-tête */
+    header {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      padding: 1.2rem 2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.6rem;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo span {
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 1.8rem;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+
+    nav a:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    /* Contenu principal */
+    main {
+      flex: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+      width: 100%;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: #1e3c72;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      font-size: 1.3rem;
+      color: #4a5b6e;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Cartes de présentation */
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem 1.8rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      flex: 1 1 300px;
+      max-width: 500px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid #e9eef3;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+      font-size: 1.8rem;
+      color: #2a5298;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .card h2 i {
+      font-style: normal;
+      font-size: 2rem;
+    }
+
+    .card p {
+      color: #2c3e50;
+      margin-bottom: 1rem;
+      font-size: 1.05rem;
+    }
+
+    .card ul {
+      list-style: none;
+      margin-top: 1rem;
+    }
+
+    .card li {
+      margin-bottom: 0.8rem;
+      padding-left: 1.8rem;
+      position: relative;
+      color: #2c3e50;
+    }
+
+    .card li::before {
+      content: "✓";
+      color: #2a5298;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+
+    /* Pied de page */
+    footer {
+      background-color: #1e2a3a;
+      color: #b0c4de;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.95rem;
+      margin-top: 3rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      nav a {
+        margin: 0 0.8rem;
+      }
+
+      .hero h1 {
+        font-size: 2.2rem;
+      }
+
+      .hero p {
+        font-size: 1.1rem;
+      }
+
+      main {
+        padding: 2rem 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+ 
+
+  <main>
+    <section class="hero">
+      <h1>Comprendre et piloter la performance</h1>
+      <p>
+        La performance n'est pas une simple mesure : c'est une dynamique 
+        qui se construit, s'observe et s'améliore en continu.
+      </p>
+    </section>
+
+    <section class="cards">
+      <article class="card">
+        <h2><i>🎯</i> Qu'est-ce que la performance ?</h2>
+        <p>
+          La performance représente la capacité à atteindre des objectifs 
+          de manière efficace et efficiente. Elle englobe la qualité, la 
+          rapidité, la pertinence et l'impact des actions menées.
+        </p>
+        <ul>
+          <li>Atteinte des résultats attendus</li>
+          <li>Optimisation des ressources</li>
+          <li>Amélioration continue</li>
+          <li>Alignement avec la stratégie</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2><i>📈</i> Le rôle du suivi</h2>
+        <p>
+          Le suivi de performance est le processus qui permet de mesurer, 
+          analyser et ajuster les actions pour garantir la progression 
+          vers les objectifs fixés.
+        </p>
+        <ul>
+          <li>Mesurer les progrès dans le temps</li>
+          <li>Identifier les écarts et les freins</li>
+          <li>Prendre des décisions éclairées</li>
+          <li>Maintenir la motivation et l'engagement</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 SuiviPerformance — Ensemble, donnons du sens à la performance.</p>
+  </footer>
+</body>
+</html>

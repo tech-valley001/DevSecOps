@@ -1,0 +1,207 @@
+.account-container {
+  min-height: calc(100vh - 64px);
+
+  padding: 40px;
+
+  background: #f4f6f9;
+
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+.account-card {
+  max-width: 700px;
+
+  margin: 0 auto;
+
+  padding: 35px;
+
+  background: white;
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+
+/* Header */
+
+.account-header {
+  display: flex;
+
+  align-items: center;
+
+  gap: 20px;
+
+  padding-bottom: 25px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+
+.avatar {
+  width: 60px;
+
+  height: 60px;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  border-radius: 50%;
+
+  background: #2563eb;
+
+  color: white;
+
+  font-size: 25px;
+
+  font-weight: 700;
+}
+
+
+.account-header h1 {
+  margin: 0 0 5px;
+
+  color: #1f2937;
+
+  font-size: 25px;
+}
+
+
+.account-header p {
+  margin: 0;
+
+  color: #6b7280;
+
+  font-size: 14px;
+}
+
+
+/* Section */
+
+.account-section {
+  margin-top: 30px;
+}
+
+
+.account-section h2 {
+  margin-bottom: 20px;
+
+  color: #374151;
+
+  font-size: 18px;
+}
+
+
+/* Ligne */
+
+.info-row {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 16px 0;
+
+  border-bottom: 1px solid #f0f0f0;
+}
+
+
+.info-label {
+  color: #6b7280;
+
+  font-size: 14px;
+
+  font-weight: 500;
+}
+
+
+.info-value {
+  color: #111827;
+
+  font-size: 14px;
+
+  font-weight: 600;
+}
+
+
+/* Status */
+
+.account-status {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  color: #15803d;
+
+  font-size: 14px;
+
+  font-weight: 600;
+}
+
+
+.status-dot {
+  width: 8px;
+
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #22c55e;
+}
+
+
+/* Loading */
+
+.loading {
+  padding: 30px;
+
+  text-align: center;
+
+  color: #6b7280;
+}
+
+
+/* Error */
+
+.error-message {
+  padding: 12px;
+
+  border-radius: 7px;
+
+  background: #fee2e2;
+
+  color: #b91c1c;
+
+  font-size: 14px;
+}
+
+
+/* Responsive */
+
+@media (max-width: 600px) {
+
+  .account-container {
+    padding: 20px 15px;
+  }
+
+  .account-card {
+    padding: 25px 20px;
+  }
+
+  .info-row {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 6px;
+  }
+
+}

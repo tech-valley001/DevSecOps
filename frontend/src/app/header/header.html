@@ -1,0 +1,139 @@
+<header class="main-header">
+
+  <!-- ========================= -->
+  <!-- LOGO -->
+  <!-- ========================= -->
+
+  <div class="header-left">
+
+    <a
+      routerLink="/acceuil"
+      class="logo"
+    >
+      <img class=logo src="CTT.png">
+    </a>
+
+  </div>
+
+
+  <!-- ========================= -->
+  <!-- NAVIGATION -->
+  <!-- ========================= -->
+
+  <nav class="navigation">
+
+
+    <!-- ========================= -->
+    <!-- VÉRIFICATION EN COURS -->
+    <!-- ========================= -->
+
+    <ng-container *ngIf="!authChecked">
+
+      <span class="checking">
+        Vérification...
+      </span>
+
+    </ng-container>
+
+
+
+    <!-- ========================= -->
+    <!-- VÉRIFICATION TERMINÉE -->
+    <!-- ========================= -->
+
+    <ng-container *ngIf="authChecked">
+
+
+      <!-- ========================= -->
+      <!-- PAS CONNECTÉ -->
+      <!-- ========================= -->
+
+      <ng-container *ngIf="!isLoggedIn()">
+
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+        >
+          Dashboard
+        </a>
+
+        <a
+          routerLink="/login"
+          routerLinkActive="active"
+        >
+          Login
+        </a>
+
+        <a
+          routerLink="/register"
+          routerLinkActive="active"
+        >
+          Register
+        </a>
+
+      </ng-container>
+
+
+
+      <!-- ========================= -->
+      <!-- CONNECTÉ -->
+      <!-- ========================= -->
+
+      <ng-container *ngIf="isLoggedIn()">
+
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+        >
+          Dashboard
+        </a>
+
+
+        <!-- STATUS -->
+
+        <div class="user-status">
+
+          <span class="status-dot"></span>
+
+          <span>
+            Connecté
+          </span>
+
+        </div>
+
+
+        <!-- EMAIL -->
+
+        <span class="user-email">
+
+          {{ currentUser?.email }}
+
+        </span>
+
+
+        <!-- MY ACCOUNT -->
+
+        <a
+          routerLink="/my-account"
+          routerLinkActive="active"
+        >
+          My Account
+        </a>
+
+
+        <!-- LOGOUT -->
+
+        <button
+          class="logout-button"
+          (click)="logout()"
+        >
+          Déconnexion
+        </button>
+
+      </ng-container>
+
+    </ng-container>
+
+  </nav>
+
+</header>
