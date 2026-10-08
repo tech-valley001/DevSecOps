@@ -16,7 +16,7 @@ security_application :
       
     script : 
         - echo "La detection des anomalies dans le code a commencé "
-        - semgrep scan --config p/default --error backend frotend 
+        - semgrep scan --config p/default --error backend frontend 
     allow_failure: false 
       
 
