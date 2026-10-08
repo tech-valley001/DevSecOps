@@ -1,6 +1,6 @@
 stages :
     - test
-    - build
+    - security
     
 build_application :
     stage : build 
@@ -8,11 +8,15 @@ build_application :
     script :
         - echo "-----------------"
         - echo " le build est commencé
-test_application :
-    stage : test
-    image : python:3.11-slim
+security_application :
+    stage : security
+    image : 
+        name : semgrep/semgrep:latest
+        entrypoint : [""]
+      
     script : 
-        - echo "test start"
-        - python --version
+        - echo "La detection des anomalies dans le code a commencé "
+        - semgrep scan --config p/default --erreur backend frotend 
+    allow_failure: false 
       
 
