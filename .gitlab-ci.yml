@@ -3,11 +3,11 @@ stages :
     - security
     
 build_application :
-    stage : build 
-    image : alpine:latest  
+    stage : test 
+    image : python:3.11-slim
     script :
-        - echo "-----------------"
-        - echo " le build est commencé
+     
+        - echo " le test est commencé
 security_application :
     stage : security
     image : 
