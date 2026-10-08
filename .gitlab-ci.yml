@@ -1,8 +1,18 @@
 stages :
     - test
+    - build
+    
+build_application :
+    stage : build 
+    image : alpine:latest  
+    script :
+        - echo "-----------------"
+        - echo " le build est commencé
 test_application :
     stage : test
     image : python:3.11-slim
     script : 
         - echo "test start"
         - python --version
+      
+"
