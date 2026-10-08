@@ -7,7 +7,7 @@ build_application :
     image : python:3.11-slim
     script :
      
-        - echo " le test est commencé
+        - echo " le test est commencé"
 security_application :
     stage : security
     image : 
