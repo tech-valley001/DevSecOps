@@ -1,0 +1,8 @@
+stages :
+    - test
+test_application :
+    stage : test
+    image : python:3.11-slim
+    script : 
+        - echo "test start"
+        - python --version
