@@ -61,7 +61,7 @@ checkov:
     entrypoint: [""]
 
   script:
-    - checkov -d . --framework dockerfile,docker_compose --output json > checkov-report.json
+    - checkov -d . --output json > checkov-report.json
 
   artifacts:
     when: always
