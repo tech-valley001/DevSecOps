@@ -1,22 +1,127 @@
-stages :
-    - test
-    - security
-    
-build_application :
-    stage : test 
-    image : python:3.11-slim
-    script :
-     
-        - echo " le test est commencé"
-security_application :
-    stage : security
-    image : 
-        name : semgrep/semgrep:latest
-        entrypoint : [""]
-      
-    script : 
-        - echo "La detection des anomalies dans le code a commencé "
-        - semgrep scan --config p/default --error backend frontend 
-    allow_failure: false 
-      
+
+stages:
+  - secrets
+  - sast
+  - iac
+  - build
+  - container_scan
+
+variables:
+  GIT_DEPTH: "0"
+
+
+
+gitleaks:
+  stage: secrets
+
+  image:
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+
+  script:
+    - gitleaks git . --redact --report-format json --report-path gitleaks-report.json
+
+  artifacts:
+    when: always
+    paths:
+      - gitleaks-report.json
+    expire_in: 7 days
+
+  allow_failure: true
+
+
+
+
+semgrep:
+  stage: sast
+
+  image:
+    name: semgrep/semgrep:latest
+    entrypoint: [""]
+
+  script:
+    - semgrep scan --config auto --json --output semgrep-report.json .
+
+  artifacts:
+    when: always
+    paths:
+      - semgrep-report.json
+    expire_in: 7 days
+
+  allow_failure: true
+
+
+
+
+checkov:
+  stage: iac
+
+  image:
+    name: bridgecrew/checkov:latest
+    entrypoint: [""]
+
+  script:
+    - checkov -d . --framework dockerfile,docker_compose --output json > checkov-report.json
+
+  artifacts:
+    when: always
+    paths:
+      - checkov-report.json
+    expire_in: 7 days
+
+  allow_failure: true
+
+
+
+
+build_images:
+  stage: build
+
+  image: docker:27-cli
+
+  services:
+    - name: docker:27-dind
+      alias: docker
+
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+
+  script:
+    - docker info
+
+    - docker build -t frontend:$CI_COMMIT_SHA ./frontend
+    - docker build -t backend:$CI_COMMIT_SHA ./backend
+
+    - docker save frontend:$CI_COMMIT_SHA -o frontend.tar
+    - docker save backend:$CI_COMMIT_SHA -o backend.tar
+
+  artifacts:
+    paths:
+      - frontend.tar
+      - backend.tar
+    expire_in: 1 day
+
+
+
+
+trivy:
+  stage: container_scan
+
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+
+  script:
+    - trivy image --input frontend.tar --format json --output trivy-frontend-report.json
+    - trivy image --input backend.tar --format json --output trivy-backend-report.json
+
+  artifacts:
+    when: always
+    paths:
+      - trivy-frontend-report.json
+      - trivy-backend-report.json
+    expire_in: 7 days
+
+  allow_failure: true
 
